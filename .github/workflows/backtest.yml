@@ -1,0 +1,67 @@
+# Backtest de MyBourse : la méthode et le portefeuille automatique rejoués sur les 2 dernières années.
+# Le 1er de chaque mois à 6 h UTC, ou à la main : onglet Actions > Backtest > Run workflow.
+# Publie backtest.json dans la branche « data », à côté des fichiers de l'analyse quotidienne.
+name: Backtest
+
+on:
+  schedule:
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: analyse
+  cancel-in-progress: false
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pipeline/requirements.txt
+
+      - name: Bibliothèques Python
+        run: pip install -r pipeline/requirements.txt
+
+      - name: Tests automatiques
+        working-directory: pipeline
+        run: python -m pytest -q
+
+      - name: Récupérer la publication précédente (branche data)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          URL="https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          if git ls-remote --exit-code --heads "$URL" data > /dev/null; then
+            git clone --depth 1 --branch data "$URL" publication
+          else
+            mkdir publication
+          fi
+
+      - name: Backtest
+        working-directory: pipeline
+        run: python backtest.py ../publication
+
+      - name: Publication dans la branche data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: publication
+        run: |
+          # Un seul commit, remplacé à chaque publication : la branche ne grossit pas.
+          rm -rf .git
+          git init -q -b data
+          git add backtest.json
+          for f in selection.json journal.json univers.json auto.json; do
+            if [ -f "$f" ]; then git add "$f"; fi   # fichiers de l'analyse quotidienne, conservés
+          done
+          git -c user.name="MyBourse" -c user.email="actions@users.noreply.github.com" \
+            commit -q -m "Backtest du $(date -u +%Y-%m-%d)"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data

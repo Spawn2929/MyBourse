@@ -102,9 +102,12 @@ def portefeuille_auto(cfg: dict, sortie: Path, doc: dict, fiches: dict, top: dic
     return auto.pour_appli(etat)
 
 
-def main(sortie: Path) -> None:
-    cfg = yaml.safe_load((ICI / "config.yaml").read_text(encoding="utf-8"))
-    grands = grands_indices(cfg)
+def lire_config() -> dict:
+    return yaml.safe_load((ICI / "config.yaml").read_text(encoding="utf-8"))
+
+
+def titres_analyses(cfg: dict, sortie: Path, grands: dict) -> dict[str, dict]:
+    """Titres de l'univers de la semaine, plus les membres du CAC 40 et du S&P 500 (grandes valeurs)."""
     titres: dict[str, dict] = {}
     for u in charger_univers(cfg, sortie, grands):
         titres[u["ticker"]] = {"nom": u["nom"], "marche": u["zone"], "secteur": u["secteur"],
@@ -116,6 +119,12 @@ def main(sortie: Path) -> None:
                          "devise": donnees.devise(t), "grande": True}
         else:
             titres[t]["grande"] = True
+    return titres
+
+
+def main(sortie: Path) -> None:
+    cfg = lire_config()
+    titres = titres_analyses(cfg, sortie, grands_indices(cfg))
     liste = lire_liste(ICI / cfg["ma_liste"])
     for t in liste:
         if t not in titres:

@@ -1,7 +1,7 @@
 # Analyse quotidienne de MyBourse.
 # Chaque soir de semaine à 22 h 30 UTC (23 h 30 à Paris en hiver, 0 h 30 en été), après la clôture
 # de Paris et de New York : télécharge les cours, calcule les scores, publie selection.json,
-# journal.json et univers.json (liste des titres, refaite chaque semaine) dans la branche « data ».
+# journal.json, univers.json (liste des titres, refaite chaque semaine) et auto.json dans la branche « data ».
 # Se lance aussi à la main : onglet Actions > Analyse quotidienne > Run workflow.
 name: Analyse quotidienne
 
@@ -68,6 +68,7 @@ jobs:
           rm -rf .git
           git init -q -b data
           git add selection.json journal.json univers.json auto.json
+          if [ -f backtest.json ]; then git add backtest.json; fi   # résultat du backtest mensuel, conservé
           git -c user.name="MyBourse" -c user.email="actions@users.noreply.github.com" \
             commit -q -m "Analyse du $(date -u +%Y-%m-%d)"
           git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data

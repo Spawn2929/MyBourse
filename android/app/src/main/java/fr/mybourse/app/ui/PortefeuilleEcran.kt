@@ -95,7 +95,7 @@ fun PortefeuilleEcran(vm: MainViewModel) {
             Box {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, "Plus d'options") }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    val modifiable = a != null && !a.auto
+                    val modifiable = a != null && !a.robot
                     if (modifiable) {
                         DropdownMenuItem(text = { Text("Nom, capital et frais") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) },
                             onClick = { menu = false; a?.let { dialogue = DialogueP.Modifier(it.portefeuille) } })
@@ -106,7 +106,7 @@ fun PortefeuilleEcran(vm: MainViewModel) {
                         DropdownMenuItem(text = { Text("Réinitialiser") }, leadingIcon = { Icon(Icons.Outlined.RestartAlt, null) },
                             onClick = { menu = false; a?.let { dialogue = DialogueP.Reinitialiser(it.portefeuille) } })
                         DropdownMenuItem(text = { Text("Supprimer") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) },
-                            enabled = tous.count { !it.auto } > 1,
+                            enabled = tous.count { !it.robot } > 1,
                             onClick = { menu = false; a?.let { dialogue = DialogueP.Supprimer(it.portefeuille) } })
                     }
                 }
@@ -120,7 +120,9 @@ fun PortefeuilleEcran(vm: MainViewModel) {
             ) {
                 if (a == null) return@LazyColumn
                 val v = a.valorisation
-                item {
+                val bt = vm.test.value
+                if (a.test && bt != null) item(key = "bilan-test") { BilanTestCarte(bt) }
+                if (!a.test) item {
                     Carte {
                         Text("Valeur totale", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(Format.euros(v.total), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
@@ -139,7 +141,7 @@ fun PortefeuilleEcran(vm: MainViewModel) {
                     }
                 }
                 item(key = "perf-${a.id}") { PerformanceCarte(vm, a) }
-                item {
+                if (!a.test) item {
                     if (a.auto) {
                         Carte {
                             Text("Géré automatiquement", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -167,7 +169,7 @@ fun PortefeuilleEcran(vm: MainViewModel) {
                         )
                     }
                 } else {
-                    item { Text("Positions (${v.lignes.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold,
+                    item { Text((if (a.test) "Positions à la fin du test (${v.lignes.size}), au cours du jour" else "Positions (${v.lignes.size})"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(top = 8.dp)) }
                     items(v.lignes, key = { it.position.ticker }) { l -> CarteLigne(l) { vm.ouvrir(Ecran.Fiche(l.position.ticker)) } }
                 }
@@ -182,7 +184,7 @@ fun PortefeuilleEcran(vm: MainViewModel) {
     when (val d = dialogue) {
         null -> {}
         DialogueP.Nouveau -> DialoguePortefeuille(
-            null, nomPropose = "Portefeuille ${tous.count { !it.auto } + 1}", fraisProposes = a?.portefeuille,
+            null, nomPropose = "Portefeuille ${tous.count { !it.robot } + 1}", fraisProposes = a?.portefeuille,
             fermer = { dialogue = null },
         ) { nom, capital, pct, min -> vm.creerPortefeuille(nom, capital, pct, min) }
         is DialogueP.Modifier -> DialoguePortefeuille(d.p, fermer = { dialogue = null }) { nom, capital, pct, min ->
@@ -297,7 +299,7 @@ private fun DialoguePortefeuille(
 }
 
 @Composable
-private fun Spacer8() = androidx.compose.foundation.layout.Spacer(Modifier.height(8.dp))
+internal fun Spacer8() = androidx.compose.foundation.layout.Spacer(Modifier.height(8.dp))
 
 @Composable
 private fun CarteLigne(l: Ligne, onClick: () -> Unit) {
@@ -363,7 +365,7 @@ fun HistoriqueEcran(vm: MainViewModel) {
                                 color = if (achat) MaterialTheme.colorScheme.onSurface else Couleurs.signe(1.0),
                                 fontWeight = FontWeight.Medium,
                             )
-                            if (actif?.auto != true) {
+                            if (actif?.robot != true) {
                                 IconButton(onClick = { aSupprimer = op }) { Icon(Icons.Outlined.Delete, "Supprimer") }
                             }
                         }

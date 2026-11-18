@@ -1,5 +1,6 @@
 package fr.mybourse.app
 
+import fr.mybourse.app.data.Backtest
 import fr.mybourse.app.data.Operation
 import fr.mybourse.app.data.Point
 import fr.mybourse.app.data.Selection
@@ -75,5 +76,26 @@ class PerformanceTest {
         assertEquals(Sens.ACHAT, ops.single().sens)
         assertEquals(10_000 - 601.0, bilan(a.capital, ops).liquidites, 0.001)
         assertEquals(10010.5, a.points.single().valeur, 1e-9)
+    }
+
+    @Test fun lectureBacktest() {
+        val b = Backtest.lire(
+            """{"format":1,"calcule_le":"2026-12-01T06:20:00Z","annees":2,"debut":"2024-11-18","fin":"2026-11-30",
+              "portefeuille":{"capital":10000,"frais_pct":0.1,"frais_min":1,"debut":"2024-11-18",
+                "dernier_reequilibrage":"2026-11-30",
+                "operations":[{"date":1,"ticker":"SW.PA","nom":"Sodexo","devise":"EUR","sens":"ACHAT","quantite":10,
+                  "prix":60.0,"change":1.0,"frais":1.0}],
+                "valeurs":[["2024-11-18",9999.0],["2026-11-30",12500.0]]},
+              "bilan":{"valeur_finale":12500,"perf_totale":25,"perf_annuelle":11.8,"pire_baisse":-18.4,
+                "semaines_gagnantes":56.3,"semaines":105,"operations":812,"frais":950.5,"titres_differents":301,
+                "indices":{"^FCHI":4.2,"^GSPC":31.0}},
+              "indices":{"^FCHI":{"nom":"CAC 40","historique":[["2024-11-18",7200.0],["2026-11-30",7500.0]]}}}""",
+        )
+        assertEquals(2, b.portefeuille.points.size)
+        assertEquals(-18.4, b.bilan.pireBaisse, 1e-9)
+        assertEquals(31.0, b.bilan.indices["^GSPC"]!!, 1e-9)
+        assertEquals("CAC 40", b.indices["^FCHI"]!!.nom)
+        assertEquals(2, b.indices["^FCHI"]!!.points.size)
+        assertEquals(10_000 - 601.0, bilan(b.portefeuille.capital, b.portefeuille.versOperations(-2)).liquidites, 0.001)
     }
 }

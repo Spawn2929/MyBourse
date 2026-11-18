@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import fr.mybourse.app.data.Backtest
 import fr.mybourse.app.data.enPourcentage
 import fr.mybourse.app.ui.theme.Couleurs
 import java.time.LocalDate
@@ -46,7 +47,10 @@ private val PERIODES_PERF = listOf("1 mois" to 1L, "6 mois" to 6L, "Tout" to 0L)
 fun PerformanceCarte(vm: MainViewModel, v: VuePortefeuille) {
     val perfs by vm.performances.collectAsState()
     val selection by vm.selection.collectAsState()
-    LaunchedEffect(v.id, v.operations.size, selection?.auto?.valeurs?.size) { vm.chargerPerformance(v) }
+    val test by vm.test.collectAsState()
+    LaunchedEffect(v.id, v.operations.size, selection?.auto?.valeurs?.size, test?.calculeLe) { vm.chargerPerformance(v) }
+    // Le test couvre plusieurs années : ses indices sont publiés avec lui, sur la même période
+    val indices = if (v.test) test?.indices.orEmpty() else selection?.indices.orEmpty()
     val etat = perfs[v.id] ?: EtatPerformance(chargement = true)
     var mois by rememberSaveable { mutableLongStateOf(0L) }
 
@@ -75,7 +79,7 @@ fun PerformanceCarte(vm: MainViewModel, v: VuePortefeuille) {
         val series = buildList {
             add(Serie(v.portefeuille.nom, enPourcentage(etat.valeurs, depuis), principal))
             for ((sym, couleur) in INDICES) {
-                val i = selection?.indices?.get(sym) ?: continue
+                val i = indices[sym] ?: continue
                 add(Serie(i.nom, enPourcentage(i.points, depuis), couleur, pointillee = true))
             }
         }.filter { it.points.size >= 2 || it.couleur == principal }
@@ -94,10 +98,62 @@ fun PerformanceCarte(vm: MainViewModel, v: VuePortefeuille) {
             }
         }
         Text(
-            "Depuis le " + Format.dateCourte(depuis) + (if (v.auto) " · valeur de chaque soir à la clôture" else " · cours de clôture Yahoo") +
+            "Depuis le " + Format.dateCourte(depuis) + (
+                when {
+                    v.test -> " · méthode rejouée sur le passé, valeur de chaque soir à la clôture"
+                    v.auto -> " · valeur de chaque soir à la clôture"
+                    else -> " · cours de clôture Yahoo"
+                }
+                ) +
                 ". Indices sans dividendes, en monnaie locale.",
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 6.dp),
+        )
+    }
+}
+
+/** Chiffres clés du backtest, et la limite à garder en tête. */
+@Composable
+fun BilanTestCarte(bt: Backtest) {
+    val b = bt.bilan
+    val debut = runCatching { Format.jour(LocalDate.parse(bt.debut)) }.getOrDefault(bt.debut)
+    val fin = runCatching { Format.jour(LocalDate.parse(bt.fin)) }.getOrDefault(bt.fin)
+    Carte {
+        Text("Bilan du test", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(
+            "La méthode de sélection et le portefeuille automatique rejoués du $debut au $fin : chaque lundi, " +
+                "score recalculé avec les seuls cours connus ce jour-là, puis mêmes règles que 🤖 Automatique.",
+            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+        )
+        Text(Format.euros(b.valeurFinale), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+        Text(
+            Format.pct(b.perfTotale) + " en ${bt.annees} ans (" + Format.pct(b.perfAnnuelle) + " par an)",
+            color = Couleurs.signe(b.perfTotale), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium,
+        )
+        Spacer8()
+        LigneInfo("Capital de départ", Format.euros(bt.portefeuille.capital))
+        LigneInfo("Pire baisse (du plus haut au plus bas)", Format.pct(b.pireBaisse), Couleurs.signe(b.pireBaisse))
+        b.semainesGagnantes?.let { LigneInfo("Semaines gagnantes", Format.nombreSimple(it) + " % sur ${b.semaines}") }
+        LigneInfo("Achats et ventes", "${b.operations} (${b.titresDifferents} titres différents)")
+        LigneInfo("Frais de courtage simulés", Format.euros(b.frais))
+        for ((sym, _) in INDICES) {
+            val p = b.indices[sym] ?: continue
+            LigneInfo(bt.indices[sym]?.nom ?: sym, Format.pct(p), Couleurs.signe(p))
+        }
+        Text(
+            "À savoir : le test part de la liste d'actions d'aujourd'hui. Les sociétés disparues depuis (faillites, rachats) " +
+                "n'y sont pas, ce qui rend le résultat un peu flatteur. Dividendes non comptés, comme pour les indices. " +
+                "Les performances passées ne préjugent pas des performances futures.",
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Text(
+            "Recalculé le 1er de chaque mois · dernier calcul : " + Format.quand(
+                runCatching { java.time.Instant.parse(bt.calculeLe).toEpochMilli() }.getOrDefault(0L)
+            ),
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
         )
     }
 }

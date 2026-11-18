@@ -55,6 +55,10 @@ auto:
   frais_pct: 0.1
   frais_min: 1
 
+# Backtest (une fois par mois) : la méthode et le portefeuille automatique rejoués sur les années passées
+backtest:
+  annees: 2
+
 # Poids de chaque famille de signaux dans le score global (ramenés à 100 % sur les familles disponibles)
 ponderations:
   technique: 40

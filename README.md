@@ -12,6 +12,7 @@ Appli Android personnelle d'aide à la sélection d'actions, avec un portefeuill
    choix d'un **top 5 France**, d'un **top 5 Europe** et d'un **top 5 États-Unis** parmi les
    **valeurs moyennes et petites**, 2 ou 3 raisons en français pour chacune.
 2. Elle tient aussi le **portefeuille automatique** 🤖 (voir plus bas).
+   Le 1er de chaque mois, un **backtest** 🧪 rejoue la méthode sur les 2 dernières années (`backtest.json`).
 3. Le résultat est publié dans la branche `data` du dépôt (`selection.json`, `journal.json`, `univers.json`, `auto.json`).
 4. L'appli lit ce fichier à l'ouverture (et quand on tire l'écran vers le bas).
 
@@ -74,6 +75,20 @@ boutons « Acheter (virtuel) » et « Vendre » avec le choix du portefeuille.
 Les familles fondamental, sentiment et macro/secteur arriveront aux étapes suivantes ; le score global
 est la moyenne pondérée des familles disponibles (poids dans `pipeline/config.yaml`).
 
+## Le backtest 🧪 (la méthode testée sur 2 ans)
+
+- Le 1er de chaque mois (ou à la main : **Actions** > **Backtest** > **Run workflow**), GitHub rejoue la méthode
+  sur les 2 dernières années, semaine par semaine : chaque lundi, score recalculé avec **les seuls cours connus
+  ce jour-là** (aucun regard vers l'avenir), puis les règles exactes du portefeuille automatique.
+- Dans l'appli : portefeuille **« 🧪 Test sur 2 ans »** dans la liste, en lecture seule, avec la carte
+  **Bilan du test** (performance totale et par an, pire baisse, semaines gagnantes, opérations, frais, indices
+  sur la même période), la courbe comparée aux indices, l'historique de tous les ordres et les positions finales.
+- Indicateurs calculés sur les cours ajustés des dividendes (comme l'analyse du soir) ; achats, ventes et valeur
+  au cours réellement coté (dividendes non comptés, comme les indices).
+- **Limite** : la liste des titres est celle d'aujourd'hui ; les sociétés disparues depuis n'y sont pas,
+  le résultat est donc un peu flatteur. Programme : `pipeline/backtest.py` et `pipeline/mybourse/backtest.py`.
+  Réglage : rubrique `backtest` de `pipeline/config.yaml` (nombre d'années).
+
 ## Modifier l'analyse (sans rien installer)
 
 Sur github.com, dans le dépôt, ouvrir le fichier puis l'icône crayon ✏️ et « Commit changes » :
@@ -87,13 +102,13 @@ Sur github.com, dans le dépôt, ouvrir le fichier puis l'icône crayon ✏️ e
 | 1 | Analyse technique, top 10, fiche, portefeuille virtuel (tout titre), export/import | ✅ v0.1 |
 | 1 bis | Plusieurs portefeuilles, valeurs moyennes et petites de France, d'Europe et des États-Unis | ✅ v0.2 |
 | 2 | Portefeuille automatique (mis à jour chaque lundi sur les tops) et courbes comparées au CAC 40, au S&P 500, au Russell 2000 et au STOXX Europe 600 | ✅ v0.3 |
+| 2 bis | Backtest sur 2 ans, recalculé chaque mois (avancé juste après l'étape 2) | ✅ v0.4 |
 | 3 | Fondamentaux (PER, croissance, marges, surprises de résultats) et récap du vendredi | à venir |
 | 4 | Sentiment des actualités (FinBERT) et macro (FRED, GDELT, secteurs) | à venir |
-| 5 | Backtest sur 2 ans (avancé juste après l'étape 2) | à venir |
 
 ## Dossiers
 
 - `pipeline/` : analyse Python (tests : `cd pipeline && python -m pytest`)
 - `android/` : appli Kotlin + Jetpack Compose + Room
-- `.github/workflows/` : analyse quotidienne, fabrication de l'APK
+- `.github/workflows/` : analyse quotidienne, backtest mensuel, fabrication de l'APK
 - `secrets/` : clé de signature (jamais publiée, **à sauvegarder**)

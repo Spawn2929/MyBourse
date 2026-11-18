@@ -46,6 +46,12 @@ def analyser(titres: dict[str, dict], cours: dict[str, pd.DataFrame], ponderatio
     """
     ind = {t: technique.indicateurs(cours[t]) for t in titres if t in cours}
     ind = {t: i for t, i in ind.items() if i is not None}
+    return classer(titres, ind, ponderations, top_par_marche, volatilite_max)
+
+
+def classer(titres: dict[str, dict], ind: dict[str, dict], ponderations: dict, top_par_marche: dict[str, int],
+            volatilite_max: float | None = None) -> tuple[dict, dict[str, list[str]]]:
+    """Scores et tops à partir des indicateurs déjà calculés (utilisé aussi par le backtest)."""
     groupes: dict[str, list[str]] = {}
     for t in ind:
         groupes.setdefault(titres[t]["marche"], []).append(t)

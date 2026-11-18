@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import fr.mybourse.app.BuildConfig
+import fr.mybourse.app.data.Backtest
 import fr.mybourse.app.data.BaseMyBourse
 import fr.mybourse.app.data.Cotation
 import fr.mybourse.app.data.CoursEntity
@@ -88,12 +89,17 @@ data class VuePortefeuille(
     val valorisation: Valorisation,
 ) {
     val id: Long get() = portefeuille.id
-    /** Portefeuille automatique (lecture seule, géré par l'analyse du soir). */
+    /** Portefeuille automatique (géré par l'analyse du soir). */
     val auto: Boolean get() = portefeuille.id == AUTO_ID
+    /** Portefeuille du backtest (la méthode rejouée sur les années passées). */
+    val test: Boolean get() = portefeuille.id == TEST_ID
+    /** Portefeuille calculé par GitHub : en lecture seule, ni achat, ni vente, ni modification. */
+    val robot: Boolean get() = portefeuille.id < 0
     fun ligne(ticker: String): Ligne? = valorisation.lignes.firstOrNull { it.position.ticker == ticker }
 }
 
 const val AUTO_ID = -1L
+const val TEST_ID = -2L
 
 /** Courbe de performance d'un portefeuille et des indices, en % depuis le début de la période. */
 data class EtatPerformance(
@@ -109,9 +115,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val dao = BaseMyBourse.get(app).dao()
     private val store = ReglagesStore(app)
     private val cache = File(app.filesDir, "selection.json")
+    private val cacheTest = File(app.filesDir, "backtest.json")
 
     val reglages: StateFlow<Reglages?> = store.flux.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val selection = MutableStateFlow<Selection?>(null)
+    /** Dernier backtest publié (null tant qu'aucun n'a été calculé). */
+    val test = MutableStateFlow<Backtest?>(null)
     val chargement = MutableStateFlow(false)
     val erreurSelection = MutableStateFlow<String?>(null)
     private val messages = Channel<Message>(Channel.BUFFERED)
@@ -126,7 +135,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Tous les portefeuilles, valorisés, dans l'ordre de création. */
     val portefeuilles: StateFlow<List<VuePortefeuille>> =
-        combine(portefeuillesBruts, toutesOperations, cours, selection) { ps, ops, c, s ->
+        combine(portefeuillesBruts, toutesOperations, cours, selection, test) { ps, ops, c, s, bt ->
             val parPortefeuille = ops.groupBy { it.portefeuille }
             fun vue(p: PortefeuilleEntity, o: List<Operation>): VuePortefeuille {
                 val b = bilan(p.capital, o)
@@ -144,7 +153,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 vue(PortefeuilleEntity(AUTO_ID, "🤖 Automatique", a.capital, a.fraisPct, a.fraisMin, Long.MAX_VALUE),
                     a.versOperations(AUTO_ID))
             }
-            ps.map { p -> vue(p, parPortefeuille[p.id].orEmpty()) } + listOfNotNull(auto)
+            val essai = bt?.portefeuille?.takeIf { it.operations.isNotEmpty() }?.let { a ->
+                vue(PortefeuilleEntity(TEST_ID, "🧪 Test sur ${bt.annees} ans", a.capital, a.fraisPct, a.fraisMin, Long.MAX_VALUE),
+                    a.versOperations(TEST_ID))
+            }
+            ps.map { p -> vue(p, parPortefeuille[p.id].orEmpty()) } + listOfNotNull(auto, essai)
         }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     /** Portefeuille affiché dans l'onglet Portefeuille. */
@@ -169,6 +182,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             withContext(Dispatchers.Default) { runCatching { Selection.lire(cache.readText()) }.getOrNull() }
                 ?.let { selection.value = it }
+            withContext(Dispatchers.Default) { runCatching { Backtest.lire(cacheTest.readText()) }.getOrNull() }
+                ?.let { test.value = it }
             rafraichir()
         }
         viewModelScope.launch {
@@ -233,14 +248,27 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                         "Hors connexion : affichage de la dernière sélection reçue."
                     }
                 }
-                val ops = toutesOperations.value + (selection.value?.auto?.versOperations(AUTO_ID) ?: emptyList())
-                val detenus = ops.map { it.ticker }.toSet()
+                try {
+                    val texte = Reseau.texte(BuildConfig.DATA_URL.replace("selection.json", "backtest.json") +
+                        "?t=" + System.currentTimeMillis() / 300_000)
+                    test.value = withContext(Dispatchers.Default) { Backtest.lire(texte) }
+                    withContext(Dispatchers.IO) { cacheTest.writeText(texte) }
+                } catch (_: Exception) {
+                    // Pas encore de backtest publié, ou hors connexion : on garde le dernier reçu
+                }
+                // Cours du jour : titres de tes portefeuilles, et positions actuelles des portefeuilles calculés
+                val robots = listOfNotNull(selection.value?.auto, test.value?.portefeuille).flatMap { a ->
+                    bilan(a.capital, a.versOperations(AUTO_ID)).positions.map { it.ticker }
+                }
+                val ops = toutesOperations.value
+                val detenus = ops.map { it.ticker }.toSet() + robots
                 val nouveaux = enParallele(detenus) { t ->
                     runCatching { Reseau.cotation(t, "5d") }.getOrNull()
                         ?.let { CoursEntity(t, it.nom, it.devise, it.prix, it.heure) }
                 }
                 if (nouveaux.isNotEmpty()) dao.enregistrerCours(nouveaux)
-                majTaux(ops.map { it.devise } + "USD")
+                majTaux(ops.map { it.devise } + listOfNotNull(selection.value?.auto, test.value?.portefeuille)
+                    .flatMap { a -> a.operations.map { it.devise } } + "USD")
             } finally {
                 chargement.value = false
             }
@@ -311,7 +339,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun acheter(portefeuille: Long, ticker: String, nom: String, devise: String, quantite: Int, prix: Double) {
         viewModelScope.launch {
-            val v = vue(portefeuille)?.takeIf { !it.auto } ?: return@launch
+            val v = vue(portefeuille)?.takeIf { !it.robot } ?: return@launch
             val change = taux(devise) ?: return@launch messages.send(Message("Taux de change indisponible : réessayez"))
             val sim = simulerAchat(quantite, prix, change, v.portefeuille.frais, v.valorisation.liquidites)
             if (!sim.possible) return@launch messages.send(Message(sim.erreur!!))
@@ -323,7 +351,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun vendre(portefeuille: Long, ticker: String, quantite: Int, prix: Double) {
         viewModelScope.launch {
-            val v = vue(portefeuille)?.takeIf { !it.auto } ?: return@launch
+            val v = vue(portefeuille)?.takeIf { !it.robot } ?: return@launch
             val pos = v.ligne(ticker)?.position
             val change = taux(pos?.devise ?: "EUR") ?: return@launch messages.send(Message("Taux de change indisponible : réessayez"))
             val sim = simulerVente(pos, quantite, prix, change, v.portefeuille.frais)
@@ -336,7 +364,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun supprimerOperation(op: Operation) {
         viewModelScope.launch {
-            val v = vue(op.portefeuille)?.takeIf { !it.auto } ?: return@launch
+            val v = vue(op.portefeuille)?.takeIf { !it.robot } ?: return@launch
             if (!peutSupprimer(v.portefeuille.capital, v.operations, op.id)) {
                 return@launch messages.send(Message("Impossible : une vente ou un achat plus récent dépend de cette opération"))
             }
@@ -361,7 +389,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Nom, capital et frais ; le capital doit couvrir les achats déjà faits. */
     fun modifierPortefeuille(p: PortefeuilleEntity) {
-        if (p.id == AUTO_ID) return
+        if (p.id < 0) return
         viewModelScope.launch {
             val ops = vue(p.id)?.operations.orEmpty()
             if (!bilan(p.capital, ops).coherent) {
@@ -373,7 +401,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun reinitialiserPortefeuille(id: Long) {
-        if (id == AUTO_ID) return
+        if (id < 0) return
         viewModelScope.launch {
             val v = vue(id) ?: return@launch
             val avant = dao.operationsDe(id)
@@ -384,7 +412,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun supprimerPortefeuille(id: Long) {
         viewModelScope.launch {
-            val tous = portefeuilles.value.filter { !it.auto }
+            val tous = portefeuilles.value.filter { !it.robot }
             val v = tous.firstOrNull { it.id == id } ?: return@launch
             if (tous.size <= 1) return@launch messages.send(Message("Impossible de supprimer le dernier portefeuille"))
             val ops = dao.operationsDe(id)
@@ -406,7 +434,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun exporter(uri: Uri) {
         viewModelScope.launch {
-            val ps = portefeuilles.value.filter { !it.auto }
+            val ps = portefeuilles.value.filter { !it.robot }
             val s = Sauvegarde(
                 exporteLe = Instant.now().toString(),
                 portefeuilles = ps.map { PortefeuilleSauve.depuis(it.portefeuille, it.operations) },
@@ -454,11 +482,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
      * Les autres : rejouée sur le téléphone avec l'historique des cours Yahoo et des taux de change.
      */
     fun chargerPerformance(v: VuePortefeuille) {
-        val a = selection.value?.auto
-        val cle = if (v.auto) "auto:" + a?.valeurs?.size else v.operations.joinToString(",") { "${it.id}" }
+        val a = if (v.test) test.value?.portefeuille else selection.value?.auto
+        val cle = if (v.robot) "robot:" + test.value?.calculeLe + a?.valeurs?.size else v.operations.joinToString(",") { "${it.id}" }
         val actuel = performances.value[v.id]
         if (actuel != null && actuel.cle == cle && (actuel.chargement || actuel.erreur == null)) return
-        if (v.auto) {
+        if (v.robot) {
             performances.update { it + (v.id to EtatPerformance(a?.points.orEmpty(), cle = cle)) }
             return
         }

@@ -9,6 +9,7 @@
 | Dépôt GitHub (public) | https://github.com/Spawn2929/MyBourse |
 | Fichier lu par l'appli | branche `data` : https://raw.githubusercontent.com/Spawn2929/MyBourse/data/selection.json |
 | Analyse quotidienne | onglet **Actions** > « Analyse quotidienne » (lun.–ven. 22 h 30 UTC) |
+| Backtest sur 2 ans | onglet **Actions** > « Backtest » (le 1er de chaque mois, 6 h UTC) |
 | APK | onglet **Releases** du dépôt, et copie dans `apk/` sur le PC |
 | Secrets GitHub | `SIGNING_KEYSTORE_B64`, `SIGNING_STORE_PASSWORD`, `SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD` |
 | Coût | 0 € |
@@ -37,6 +38,10 @@ Pour restaurer : **Réglages > Importer** (une sauvegarde de la v0.1 est aussi a
 
 github.com > dépôt MyBourse > **Actions** > **Analyse quotidienne** > **Run workflow**
 (cocher « Refaire la liste des titres analysés » pour la reconstruire sans attendre la semaine suivante).
+
+## 🤖 Relancer le backtest à la main
+
+github.com > dépôt MyBourse > **Actions** > **Backtest** > **Run workflow** (environ 15 minutes).
 
 ## 🤖 Fabriquer un APK
 

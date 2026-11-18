@@ -200,7 +200,7 @@ fun FicheEcran(vm: MainViewModel, ticker: String) {
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (detenteurs.any { !it.first.auto }) {
+            if (detenteurs.any { !it.first.robot }) {
                 OutlinedButton(onClick = { ordre = Sens.VENTE }, enabled = connu != null, modifier = Modifier.weight(1f).height(52.dp)) {
                     Text("Vendre")
                 }
@@ -213,7 +213,7 @@ fun FicheEcran(vm: MainViewModel, ticker: String) {
 
     val o = ordre
     if (o != null && connu != null) {
-        val choix = (if (o == Sens.VENTE) detenteurs.map { it.first } else portefeuilles).filter { !it.auto }
+        val choix = (if (o == Sens.VENTE) detenteurs.map { it.first } else portefeuilles).filter { !it.robot }
         if (choix.isNotEmpty()) OrdreFeuille(vm, o, ticker, nom, devise, connu.prix, taux, choix, actif?.id) { ordre = null }
     }
 }

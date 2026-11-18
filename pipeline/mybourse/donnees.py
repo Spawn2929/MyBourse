@@ -12,7 +12,8 @@ log = logging.getLogger(__name__)
 SUFFIXES_EURO = (".PA", ".AS", ".DE", ".MI", ".MC", ".BR", ".LS", ".HE", ".VI", ".IR", ".F")
 
 
-def _decouper(df: pd.DataFrame, tickers: list[str]) -> dict[str, pd.DataFrame]:
+def _decouper(df: pd.DataFrame, tickers: list[str],
+              colonnes: tuple[str, ...] = ("Close", "Volume")) -> dict[str, pd.DataFrame]:
     res = {}
     for t in tickers:
         try:
@@ -21,7 +22,7 @@ def _decouper(df: pd.DataFrame, tickers: list[str]) -> dict[str, pd.DataFrame]:
             continue
         if "Close" not in sub:
             continue
-        sub = sub[["Close", "Volume"]].dropna(subset=["Close"])
+        sub = sub[[c for c in colonnes if c in sub]].dropna(subset=["Close"])
         if not sub.empty:
             sub.index = pd.to_datetime(sub.index).tz_localize(None)
             res[t] = sub
@@ -29,8 +30,13 @@ def _decouper(df: pd.DataFrame, tickers: list[str]) -> dict[str, pd.DataFrame]:
 
 
 def telecharger(tickers: list[str], periode: str = "2y", taille_lot: int = 100,
-                pause: float = 3.0) -> dict[str, pd.DataFrame]:
-    """Cours quotidiens (clôture ajustée, volume) par titre. Les titres en échec sont retentés une fois."""
+                pause: float = 3.0, ajuste: bool = True) -> dict[str, pd.DataFrame]:
+    """Cours quotidiens (clôture ajustée, volume) par titre. Les titres en échec sont retentés une fois.
+
+    ajuste=False (backtest) : « Close » est le cours réellement coté (sans les dividendes),
+    « Adj Close » le cours ajusté des dividendes, qui sert aux indicateurs.
+    """
+    colonnes = ("Close", "Volume") if ajuste else ("Close", "Adj Close", "Volume")
     res: dict[str, pd.DataFrame] = {}
     a_faire = list(dict.fromkeys(tickers))
     for essai in range(2):
@@ -38,9 +44,9 @@ def telecharger(tickers: list[str], periode: str = "2y", taille_lot: int = 100,
             lot = a_faire[i:i + taille_lot]
             if i or essai:
                 time.sleep(pause)
-            df = yf.download(lot, period=periode, interval="1d", auto_adjust=True,
+            df = yf.download(lot, period=periode, interval="1d", auto_adjust=ajuste,
                              group_by="ticker", threads=True, progress=False)
-            res.update(_decouper(df, lot))
+            res.update(_decouper(df, lot, colonnes))
         a_faire = [t for t in a_faire if t not in res]
         if not a_faire:
             break

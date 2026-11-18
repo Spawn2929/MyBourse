@@ -58,9 +58,46 @@ def indicateurs(df: pd.DataFrame) -> dict | None:
     }
 
 
+def series_indicateurs(df: pd.DataFrame) -> pd.DataFrame:
+    """Les mêmes indicateurs que indicateurs(), calculés pour chaque jour d'un coup (backtest).
+
+    La ligne du jour J ne dépend que des cours jusqu'à J : identique à indicateurs(df.loc[:J]).
+    Colonne « points » : nombre de cours connus à cette date (JOURS_MIN au moins pour être analysé).
+    """
+    df = df.dropna(subset=["Close"])
+    close, vol = df["Close"], df["Volume"].fillna(0)
+    hist = macd_hist(close)
+    vol20, vol100 = vol.rolling(20, min_periods=1).mean(), vol.rolling(100, min_periods=1).mean()
+
+    def perf_n(n):
+        return (close / close.shift(n) - 1) * 100
+
+    rendements = np.log(close.where(close > 0)).diff()
+    return pd.DataFrame({
+        "cours": close.round(4),
+        "var_1j": perf_n(1), "perf_1m": perf_n(21), "perf_3m": perf_n(63),
+        "perf_6m": perf_n(126), "perf_1a": perf_n(252),
+        "rsi": rsi(close),
+        "mm50": close.rolling(50).mean(), "mm200": close.rolling(200).mean(),
+        "macd_hist": hist, "macd_hist_5j": hist.shift(5),
+        "ratio_volume": (vol20 / vol100).where(vol100 > 0),
+        "volatilite": rendements.rolling(252, min_periods=60).std() * math.sqrt(252) * 100,
+        "points": np.arange(1, len(close) + 1),
+    }, index=df.index)
+
+
+def ligne_vers_indicateurs(date: pd.Timestamp, ligne: pd.Series) -> dict | None:
+    """Une ligne de series_indicateurs() au format de indicateurs() ; None si l'historique est trop court."""
+    if ligne["points"] < JOURS_MIN:
+        return None
+    ind = {k: (None if pd.isna(v) else float(v)) for k, v in ligne.items() if k != "points"}
+    ind["date"] = date.strftime("%Y-%m-%d")
+    return ind
+
+
 def volatilite(close: pd.Series, jours: int = 252) -> float | None:
     """Volatilité annualisée sur un an, en % : l'amplitude habituelle des variations du cours."""
-    rendements = np.log(close).diff().dropna().tail(jours)
+    rendements = np.log(close.where(close > 0)).diff().dropna().tail(jours)
     if len(rendements) < 60:
         return None
     return float(rendements.std() * math.sqrt(252) * 100)
