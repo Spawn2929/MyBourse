@@ -49,6 +49,12 @@ top_par_marche:
   EU: 5
   US: 5
 
+# Portefeuille automatique : départ, frais simulés (mis à jour chaque semaine sur les tops, à parts égales)
+auto:
+  capital: 10000
+  frais_pct: 0.1
+  frais_min: 1
+
 # Poids de chaque famille de signaux dans le score global (ramenés à 100 % sur les familles disponibles)
 ponderations:
   technique: 40

@@ -121,6 +121,7 @@ data class Serie(val nom: String, val points: List<Point>, val couleur: Color, v
 fun Graphique(
     series: List<Serie>,
     modifier: Modifier = Modifier,
+    legende: Boolean = true,
     formatValeur: (Double) -> String,
 ) {
     val tous = series.flatMap { it.points }
@@ -168,7 +169,7 @@ fun Graphique(
             Text(Format.dateCourte(debut), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(Format.dateCourte(fin), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        if (series.size > 1) {
+        if (series.size > 1 && legende) {
             Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 for (s in series) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

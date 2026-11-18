@@ -23,7 +23,11 @@ import fr.mybourse.app.data.Sauvegarde
 import fr.mybourse.app.data.Selection
 import fr.mybourse.app.data.Sens
 import fr.mybourse.app.data.Valorisation
+import fr.mybourse.app.data.Point
 import fr.mybourse.app.data.bilan
+import fr.mybourse.app.data.jourDe
+import fr.mybourse.app.data.periodePour
+import fr.mybourse.app.data.valeursQuotidiennes
 import fr.mybourse.app.data.peutSupprimer
 import fr.mybourse.app.data.simulerAchat
 import fr.mybourse.app.data.simulerVente
@@ -84,8 +88,21 @@ data class VuePortefeuille(
     val valorisation: Valorisation,
 ) {
     val id: Long get() = portefeuille.id
+    /** Portefeuille automatique (lecture seule, géré par l'analyse du soir). */
+    val auto: Boolean get() = portefeuille.id == AUTO_ID
     fun ligne(ticker: String): Ligne? = valorisation.lignes.firstOrNull { it.position.ticker == ticker }
 }
+
+const val AUTO_ID = -1L
+
+/** Courbe de performance d'un portefeuille et des indices, en % depuis le début de la période. */
+data class EtatPerformance(
+    val valeurs: List<Point> = emptyList(),
+    val chargement: Boolean = false,
+    val erreur: String? = null,
+    /** Pour ne recalculer que si les opérations ont changé. */
+    val cle: String = "",
+)
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class MainViewModel(app: Application) : AndroidViewModel(app) {
@@ -111,10 +128,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val portefeuilles: StateFlow<List<VuePortefeuille>> =
         combine(portefeuillesBruts, toutesOperations, cours, selection) { ps, ops, c, s ->
             val parPortefeuille = ops.groupBy { it.portefeuille }
-            ps.map { p ->
-                val o = parPortefeuille[p.id].orEmpty()
+            fun vue(p: PortefeuilleEntity, o: List<Operation>): VuePortefeuille {
                 val b = bilan(p.capital, o)
-                VuePortefeuille(
+                return VuePortefeuille(
                     p, o,
                     Valorisation(
                         capital = p.capital,
@@ -124,6 +140,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     ),
                 )
             }
+            val auto = s?.auto?.takeIf { it.operations.isNotEmpty() }?.let { a ->
+                vue(PortefeuilleEntity(AUTO_ID, "🤖 Automatique", a.capital, a.fraisPct, a.fraisMin, Long.MAX_VALUE),
+                    a.versOperations(AUTO_ID))
+            }
+            ps.map { p -> vue(p, parPortefeuille[p.id].orEmpty()) } + listOfNotNull(auto)
         }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     /** Portefeuille affiché dans l'onglet Portefeuille. */
@@ -212,7 +233,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                         "Hors connexion : affichage de la dernière sélection reçue."
                     }
                 }
-                val ops = toutesOperations.value
+                val ops = toutesOperations.value + (selection.value?.auto?.versOperations(AUTO_ID) ?: emptyList())
                 val detenus = ops.map { it.ticker }.toSet()
                 val nouveaux = enParallele(detenus) { t ->
                     runCatching { Reseau.cotation(t, "5d") }.getOrNull()
@@ -290,7 +311,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun acheter(portefeuille: Long, ticker: String, nom: String, devise: String, quantite: Int, prix: Double) {
         viewModelScope.launch {
-            val v = vue(portefeuille) ?: return@launch
+            val v = vue(portefeuille)?.takeIf { !it.auto } ?: return@launch
             val change = taux(devise) ?: return@launch messages.send(Message("Taux de change indisponible : réessayez"))
             val sim = simulerAchat(quantite, prix, change, v.portefeuille.frais, v.valorisation.liquidites)
             if (!sim.possible) return@launch messages.send(Message(sim.erreur!!))
@@ -302,7 +323,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun vendre(portefeuille: Long, ticker: String, quantite: Int, prix: Double) {
         viewModelScope.launch {
-            val v = vue(portefeuille) ?: return@launch
+            val v = vue(portefeuille)?.takeIf { !it.auto } ?: return@launch
             val pos = v.ligne(ticker)?.position
             val change = taux(pos?.devise ?: "EUR") ?: return@launch messages.send(Message("Taux de change indisponible : réessayez"))
             val sim = simulerVente(pos, quantite, prix, change, v.portefeuille.frais)
@@ -315,7 +336,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun supprimerOperation(op: Operation) {
         viewModelScope.launch {
-            val v = vue(op.portefeuille) ?: return@launch
+            val v = vue(op.portefeuille)?.takeIf { !it.auto } ?: return@launch
             if (!peutSupprimer(v.portefeuille.capital, v.operations, op.id)) {
                 return@launch messages.send(Message("Impossible : une vente ou un achat plus récent dépend de cette opération"))
             }
@@ -340,6 +361,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Nom, capital et frais ; le capital doit couvrir les achats déjà faits. */
     fun modifierPortefeuille(p: PortefeuilleEntity) {
+        if (p.id == AUTO_ID) return
         viewModelScope.launch {
             val ops = vue(p.id)?.operations.orEmpty()
             if (!bilan(p.capital, ops).coherent) {
@@ -351,6 +373,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun reinitialiserPortefeuille(id: Long) {
+        if (id == AUTO_ID) return
         viewModelScope.launch {
             val v = vue(id) ?: return@launch
             val avant = dao.operationsDe(id)
@@ -361,7 +384,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun supprimerPortefeuille(id: Long) {
         viewModelScope.launch {
-            val tous = portefeuilles.value
+            val tous = portefeuilles.value.filter { !it.auto }
             val v = tous.firstOrNull { it.id == id } ?: return@launch
             if (tous.size <= 1) return@launch messages.send(Message("Impossible de supprimer le dernier portefeuille"))
             val ops = dao.operationsDe(id)
@@ -383,7 +406,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun exporter(uri: Uri) {
         viewModelScope.launch {
-            val ps = portefeuilles.value
+            val ps = portefeuilles.value.filter { !it.auto }
             val s = Sauvegarde(
                 exporteLe = Instant.now().toString(),
                 portefeuilles = ps.map { PortefeuilleSauve.depuis(it.portefeuille, it.operations) },
@@ -421,6 +444,54 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     suspend fun reglagesActuels(): Reglages = reglages.value ?: store.flux.first()
+
+    // ---------- Performance ----------
+
+    val performances = MutableStateFlow<Map<Long, EtatPerformance>>(emptyMap())
+
+    /**
+     * Valeur quotidienne d'un portefeuille. Automatique : calculée chaque soir par l'analyse.
+     * Les autres : rejouée sur le téléphone avec l'historique des cours Yahoo et des taux de change.
+     */
+    fun chargerPerformance(v: VuePortefeuille) {
+        val a = selection.value?.auto
+        val cle = if (v.auto) "auto:" + a?.valeurs?.size else v.operations.joinToString(",") { "${it.id}" }
+        val actuel = performances.value[v.id]
+        if (actuel != null && actuel.cle == cle && (actuel.chargement || actuel.erreur == null)) return
+        if (v.auto) {
+            performances.update { it + (v.id to EtatPerformance(a?.points.orEmpty(), cle = cle)) }
+            return
+        }
+        if (v.operations.isEmpty()) {
+            performances.update { it + (v.id to EtatPerformance(cle = cle)) }
+            return
+        }
+        performances.update { it + (v.id to EtatPerformance(actuel?.valeurs.orEmpty(), chargement = true, cle = cle)) }
+        viewModelScope.launch {
+            try {
+                val periode = periodePour(jourDe(v.operations.minOf { it.date }))
+                val tickers = v.operations.map { it.ticker }.toSet()
+                val historiques = enParallele(tickers) { t ->
+                    runCatching { t to Reseau.cotation(t, periode).historique }.getOrNull()
+                }.toMap()
+                if (historiques.isEmpty()) throw java.io.IOException("Pas de cours")
+                val devises = v.operations.map { it.devise }.filter { Devises.base(it).first != "EUR" }.toSet()
+                val change = enParallele(devises) { d ->
+                    val (base, div) = Devises.base(d)
+                    runCatching { d to Reseau.cotation("${base}EUR=X", periode).historique.map { Point(it.date, it.valeur / div) } }.getOrNull()
+                }.toMap()
+                val jours = historiques.values.flatten().map { it.date } + LocalDate.now(Format.PARIS)
+                val valeurs = withContext(Dispatchers.Default) {
+                    valeursQuotidiennes(v.portefeuille.capital, v.operations, jours, historiques, change)
+                }
+                performances.update { it + (v.id to EtatPerformance(valeurs, cle = cle)) }
+            } catch (e: Exception) {
+                performances.update {
+                    it + (v.id to EtatPerformance(actuel?.valeurs.orEmpty(), erreur = "Courbe indisponible : vérifiez la connexion.", cle = cle))
+                }
+            }
+        }
+    }
 }
 
 fun libelleMarcheCourt(m: String) = when (m) {

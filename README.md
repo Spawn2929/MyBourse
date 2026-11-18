@@ -11,15 +11,16 @@ Appli Android personnelle d'aide à la sélection d'actions, avec un portefeuill
    cours d'environ **5 400 actions** de France, d'Europe et des États-Unis, calcul d'un score sur 100,
    choix d'un **top 5 France**, d'un **top 5 Europe** et d'un **top 5 États-Unis** parmi les
    **valeurs moyennes et petites**, 2 ou 3 raisons en français pour chacune.
-2. Le résultat est publié dans la branche `data` du dépôt (`selection.json`, `journal.json`, `univers.json`).
-3. L'appli lit ce fichier à l'ouverture (et quand on tire l'écran vers le bas).
+2. Elle tient aussi le **portefeuille automatique** 🤖 (voir plus bas).
+3. Le résultat est publié dans la branche `data` du dépôt (`selection.json`, `journal.json`, `univers.json`, `auto.json`).
+4. L'appli lit ce fichier à l'ouverture (et quand on tire l'écran vers le bas).
 
 ## Les écrans
 
 | Onglet | Ce qu'on y fait |
 |---|---|
 | **Sélection** | Les tops France, Europe et États-Unis du jour, puis « Ma liste ». Score, cours, variation, capitalisation, mini-graphique 3 mois, **niveau de risque** (volatilité), raisons. Toucher une carte ouvre la fiche. |
-| **Portefeuille** | **Plusieurs portefeuilles** : toucher le nom en haut (« Principal ▾ ») pour en changer ou en créer un ; menu ⋮ : nom, capital et frais, réinitialiser, supprimer. Valeur totale, plus ou moins-value, liquidités, positions. Bouton « Acheter un titre » : **n'importe quelle action ou ETF** coté. Icône horloge : historique des transactions du portefeuille affiché. |
+| **Portefeuille** | **Plusieurs portefeuilles** : toucher le nom en haut (« Principal ▾ ») pour en changer ou en créer un ; menu ⋮ : nom, capital et frais, réinitialiser, supprimer. Valeur totale, plus ou moins-value, liquidités, **courbe de performance comparée aux indices** (1 mois, 6 mois, tout), positions. Bouton « Acheter un titre » : **n'importe quelle action ou ETF** coté. Icône horloge : historique des transactions du portefeuille affiché. |
 | **Réglages** | Zones affichées, thème clair / sombre / automatique, export / import de tous les portefeuilles. |
 
 **Fiche d'un titre** : cours (et équivalent en euros pour les titres en dollars), graphique 1 mois / 6 mois / 1 an / 2 ans,
@@ -35,6 +36,17 @@ boutons « Acheter (virtuel) » et « Vendre » avec le choix du portefeuille.
 - Prix de revient (PRU) frais compris ; à la vente, méthode du coût moyen.
 - Tout achat, vente, suppression ou réinitialisation s'**annule** pendant 5 secondes (bouton « Annuler »).
 - Les portefeuilles n'existent que sur le téléphone : **Réglages > Exporter** de temps en temps.
+
+## Le portefeuille automatique 🤖
+
+- 10 000 € au départ, investis à parts égales dans les 15 titres des tops (5 France, 5 Europe, 5 États-Unis).
+- **Chaque début de semaine** (analyse du lundi soir) : vente des titres sortis des tops, conservation de ceux
+  qui y restent, achat des nouveaux entrants à parts égales avec les liquidités. Cours de clôture, titres entiers,
+  frais simulés de 0,1 % (minimum 1 €), conversion en euros au taux du jour.
+- Calculé par GitHub (`pipeline/mybourse/auto.py`) ; dans l'appli il apparaît dans la liste des portefeuilles,
+  **en lecture seule**. Réglages dans `pipeline/config.yaml` (rubrique `auto`).
+- Sa courbe est comparée au CAC 40, au S&P 500, au Russell 2000 et au STOXX Europe 600 (indices sans dividendes).
+  Les courbes de tes portefeuilles sont recalculées sur le téléphone à partir des cours Yahoo.
 
 ## Les actions analysées
 
@@ -74,7 +86,7 @@ Sur github.com, dans le dépôt, ouvrir le fichier puis l'icône crayon ✏️ e
 |---|---|---|
 | 1 | Analyse technique, top 10, fiche, portefeuille virtuel (tout titre), export/import | ✅ v0.1 |
 | 1 bis | Plusieurs portefeuilles, valeurs moyennes et petites de France, d'Europe et des États-Unis | ✅ v0.2 |
-| 2 | Portefeuille automatique (rééquilibré chaque lundi sur les tops) et courbes comparées au CAC 40, au S&P 500, au Russell 2000 et au STOXX Europe 600 | à venir |
+| 2 | Portefeuille automatique (mis à jour chaque lundi sur les tops) et courbes comparées au CAC 40, au S&P 500, au Russell 2000 et au STOXX Europe 600 | ✅ v0.3 |
 | 3 | Fondamentaux (PER, croissance, marges, surprises de résultats) et récap du vendredi | à venir |
 | 4 | Sentiment des actualités (FinBERT) et macro (FRED, GDELT, secteurs) | à venir |
 | 5 | Backtest sur 2 ans (avancé juste après l'étape 2) | à venir |

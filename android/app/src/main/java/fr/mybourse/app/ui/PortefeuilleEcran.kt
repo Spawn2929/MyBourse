@@ -95,15 +95,20 @@ fun PortefeuilleEcran(vm: MainViewModel) {
             Box {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, "Plus d'options") }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text("Nom, capital et frais") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) },
-                        onClick = { menu = false; a?.let { dialogue = DialogueP.Modifier(it.portefeuille) } })
+                    val modifiable = a != null && !a.auto
+                    if (modifiable) {
+                        DropdownMenuItem(text = { Text("Nom, capital et frais") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) },
+                            onClick = { menu = false; a?.let { dialogue = DialogueP.Modifier(it.portefeuille) } })
+                    }
                     DropdownMenuItem(text = { Text("Nouveau portefeuille") }, leadingIcon = { Icon(Icons.Outlined.Add, null) },
                         onClick = { menu = false; dialogue = DialogueP.Nouveau })
-                    DropdownMenuItem(text = { Text("Réinitialiser") }, leadingIcon = { Icon(Icons.Outlined.RestartAlt, null) },
-                        onClick = { menu = false; a?.let { dialogue = DialogueP.Reinitialiser(it.portefeuille) } })
-                    DropdownMenuItem(text = { Text("Supprimer") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) },
-                        enabled = tous.size > 1,
-                        onClick = { menu = false; a?.let { dialogue = DialogueP.Supprimer(it.portefeuille) } })
+                    if (modifiable) {
+                        DropdownMenuItem(text = { Text("Réinitialiser") }, leadingIcon = { Icon(Icons.Outlined.RestartAlt, null) },
+                            onClick = { menu = false; a?.let { dialogue = DialogueP.Reinitialiser(it.portefeuille) } })
+                        DropdownMenuItem(text = { Text("Supprimer") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) },
+                            enabled = tous.count { !it.auto } > 1,
+                            onClick = { menu = false; a?.let { dialogue = DialogueP.Supprimer(it.portefeuille) } })
+                    }
                 }
             }
         }
@@ -133,10 +138,25 @@ fun PortefeuilleEcran(vm: MainViewModel) {
                         LigneInfo("Frais de courtage simulés", Format.fraisTexte(a.portefeuille.frais))
                     }
                 }
+                item(key = "perf-${a.id}") { PerformanceCarte(vm, a) }
                 item {
-                    Button(onClick = { vm.ouvrir(Ecran.Recherche) }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                        Icon(Icons.Outlined.Add, null)
-                        Text("  Acheter un titre (action ou ETF)")
+                    if (a.auto) {
+                        Carte {
+                            Text("Géré automatiquement", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                "Chaque début de semaine, l'analyse du soir vend les titres sortis des tops et achète les nouveaux " +
+                                    "entrants à parts égales (5 France, 5 Europe, 5 États-Unis), au cours de clôture." +
+                                    (vm.selection.value?.auto?.dernierReequilibrage?.let { j ->
+                                        runCatching { " Dernière mise à jour : " + Format.jour(java.time.LocalDate.parse(j)) + "." }.getOrDefault("")
+                                    } ?: ""),
+                                style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
+                    } else {
+                        Button(onClick = { vm.ouvrir(Ecran.Recherche) }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                            Icon(Icons.Outlined.Add, null)
+                            Text("  Acheter un titre (action ou ETF)")
+                        }
                     }
                 }
                 if (v.lignes.isEmpty()) {
@@ -162,7 +182,7 @@ fun PortefeuilleEcran(vm: MainViewModel) {
     when (val d = dialogue) {
         null -> {}
         DialogueP.Nouveau -> DialoguePortefeuille(
-            null, nomPropose = "Portefeuille ${tous.size + 1}", fraisProposes = a?.portefeuille,
+            null, nomPropose = "Portefeuille ${tous.count { !it.auto } + 1}", fraisProposes = a?.portefeuille,
             fermer = { dialogue = null },
         ) { nom, capital, pct, min -> vm.creerPortefeuille(nom, capital, pct, min) }
         is DialogueP.Modifier -> DialoguePortefeuille(d.p, fermer = { dialogue = null }) { nom, capital, pct, min ->
@@ -343,7 +363,9 @@ fun HistoriqueEcran(vm: MainViewModel) {
                                 color = if (achat) MaterialTheme.colorScheme.onSurface else Couleurs.signe(1.0),
                                 fontWeight = FontWeight.Medium,
                             )
-                            IconButton(onClick = { aSupprimer = op }) { Icon(Icons.Outlined.Delete, "Supprimer") }
+                            if (actif?.auto != true) {
+                                IconButton(onClick = { aSupprimer = op }) { Icon(Icons.Outlined.Delete, "Supprimer") }
+                            }
                         }
                     },
                     modifier = Modifier.clickable { vm.ouvrir(Ecran.Fiche(op.ticker)) },

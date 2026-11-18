@@ -67,7 +67,7 @@ jobs:
           # Un seul commit, remplacé chaque soir : la branche ne grossit pas.
           rm -rf .git
           git init -q -b data
-          git add selection.json journal.json univers.json
+          git add selection.json journal.json univers.json auto.json
           git -c user.name="MyBourse" -c user.email="actions@users.noreply.github.com" \
             commit -q -m "Analyse du $(date -u +%Y-%m-%d)"
           git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data

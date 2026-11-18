@@ -1,8 +1,9 @@
 """Analyse quotidienne de MyBourse : télécharge les cours, calcule les scores, écrit les fichiers JSON.
 
 Usage : python run.py [dossier_de_sortie]
-Fichiers écrits : selection.json (lu par l'appli), journal.json (sélections passées)
-et univers.json (liste des titres analysés, reconstruite chaque semaine).
+Fichiers écrits : selection.json (lu par l'appli), journal.json (sélections passées),
+univers.json (liste des titres analysés, reconstruite chaque semaine) et auto.json
+(portefeuille automatique, mis à jour chaque semaine sur les tops).
 Variable MYBOURSE_UNIVERS=reconstruire : force la reconstruction de la liste.
 """
 from __future__ import annotations
@@ -17,7 +18,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
-from mybourse import analyse, donnees, univers
+from mybourse import analyse, auto, donnees, univers
 
 ICI = Path(__file__).resolve().parent
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
@@ -69,6 +70,38 @@ def charger_univers(cfg: dict, sortie: Path, grands: dict) -> list[dict]:
     return nouveau
 
 
+DEVISES_CHANGE = ("USD", "GBP", "CHF", "SEK", "DKK", "NOK")
+
+
+def euros_par_unite(cours: dict) -> dict[str, float]:
+    """Euros pour 1 unité de chaque devise de cotation (GBp = pence)."""
+    res = {"EUR": 1.0}
+    for d in DEVISES_CHANGE:
+        s = f"EUR{d}=X"
+        if s in cours and not cours[s].empty:
+            res[d] = 1 / float(cours[s]["Close"].iloc[-1])
+    if "GBP" in res:
+        res["GBp"] = res["GBP"] / 100
+    return res
+
+
+def portefeuille_auto(cfg: dict, sortie: Path, doc: dict, fiches: dict, top: dict, cours: dict) -> dict:
+    """Met à jour le portefeuille automatique (auto.json) et renvoie la partie lue par l'appli."""
+    change = euros_par_unite(cours)
+    infos = {t: {"prix": f["cours"], "change": change[f["devise"]], "nom": f["nom"], "devise": f["devise"]}
+             for t, f in fiches.items() if f["devise"] in change and f["cours"] > 0}
+    cibles = [t for zone in ("FR", "EU", "US") for t in top.get(zone, [])]
+    chemin = sortie / "auto.json"
+    etat = json.loads(chemin.read_text(encoding="utf-8")) if chemin.exists() else None
+    a = cfg["auto"]
+    horodatage = int(datetime.now(timezone.utc).timestamp() * 1000)
+    etat = auto.mettre_a_jour(etat, doc["date_marche"], cibles, infos, horodatage,
+                              a["capital"], a["frais_pct"], a["frais_min"])
+    chemin.write_text(json.dumps(etat, ensure_ascii=False, indent=1), encoding="utf-8")
+    log.info("Portefeuille automatique : %s € (%d positions)", etat["valeurs"][-1][1], len(etat["positions"]))
+    return auto.pour_appli(etat)
+
+
 def main(sortie: Path) -> None:
     cfg = yaml.safe_load((ICI / "config.yaml").read_text(encoding="utf-8"))
     grands = grands_indices(cfg)
@@ -91,7 +124,7 @@ def main(sortie: Path) -> None:
     indices = cfg["indices"]
     tl = cfg["telechargement"]
     log.info("Téléchargement de %d titres", len(titres))
-    cours = donnees.telecharger(list(titres) + list(indices) + ["EURUSD=X"],
+    cours = donnees.telecharger(list(titres) + list(indices) + [f"EUR{d}=X" for d in DEVISES_CHANGE],
                                 taille_lot=tl["taille_lot"], pause=tl["pause_secondes"])
     eurusd = round(float(cours["EURUSD=X"]["Close"].iloc[-1]), 5) if "EURUSD=X" in cours else None
 
@@ -102,6 +135,7 @@ def main(sortie: Path) -> None:
     doc = analyse.construire_json(fiches, top, cours, indices, cfg["ponderations"], eurusd, liste)
 
     sortie.mkdir(parents=True, exist_ok=True)
+    doc["auto"] = portefeuille_auto(cfg, sortie, doc, fiches, top, cours)
     (sortie / "selection.json").write_text(json.dumps(doc, ensure_ascii=False, separators=(",", ":")),
                                            encoding="utf-8")
     chemin_journal = sortie / "journal.json"

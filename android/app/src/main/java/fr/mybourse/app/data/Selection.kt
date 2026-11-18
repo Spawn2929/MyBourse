@@ -21,6 +21,8 @@ data class Selection(
     @SerialName("ma_liste") val maListe: List<String> = emptyList(),
     val indices: Map<String, Indice> = emptyMap(),
     val titres: Map<String, Titre> = emptyMap(),
+    /** Portefeuille automatique, géré par l'analyse du soir. */
+    val auto: Auto? = null,
 ) {
     /** Euros pour 1 dollar, d'après le cours EUR/USD publié. */
     val eurParUsd: Double? get() = change["EURUSD"]?.takeIf { it > 0 }?.let { 1 / it }
@@ -69,6 +71,39 @@ fun niveauVolatilite(v: Double): String = when {
 }
 
 data class Point(val date: LocalDate, val valeur: Double)
+
+/** Portefeuille automatique : les opérations de chaque lundi et la valeur de chaque soir. */
+@Serializable
+data class Auto(
+    val capital: Double = 10_000.0,
+    @SerialName("frais_pct") val fraisPct: Double = 0.1,
+    @SerialName("frais_min") val fraisMin: Double = 1.0,
+    val debut: String = "",
+    @SerialName("dernier_reequilibrage") val dernierReequilibrage: String? = null,
+    val operations: List<OperationAuto> = emptyList(),
+    val valeurs: List<JsonArray> = emptyList(),
+) {
+    val points: List<Point> get() = versPoints(valeurs)
+
+    /** Opérations au format de l'appli (identifiants négatifs : jamais en base). */
+    fun versOperations(portefeuille: Long): List<Operation> = operations.mapIndexed { i, o ->
+        Operation(-(i + 1L), o.ticker, o.nom, o.devise, if (o.sens == "VENTE") Sens.VENTE else Sens.ACHAT,
+            o.quantite, o.prix, o.change, o.frais, o.date, portefeuille)
+    }
+}
+
+@Serializable
+data class OperationAuto(
+    val date: Long,
+    val ticker: String,
+    val nom: String,
+    val devise: String,
+    val sens: String,
+    val quantite: Int,
+    val prix: Double,
+    val change: Double,
+    val frais: Double,
+)
 
 private fun versPoints(brut: List<JsonArray>): List<Point> = brut.mapNotNull { p ->
     val d = runCatching { LocalDate.parse(p[0].jsonPrimitive.content) }.getOrNull()
