@@ -1,0 +1,32 @@
+# Réglages du programme d'analyse quotidien de MyBourse.
+# Modifiable directement sur GitHub (icône crayon) : la prochaine analyse en tiendra compte.
+
+# Marchés analysés : nom affiché -> fichier de la liste des actions (dans pipeline/univers/)
+univers:
+  FR: univers/cac40.csv
+  US: univers/sp500.csv
+
+# Titres supplémentaires à analyser chaque soir (actions ou ETF, codes Yahoo, un par ligne)
+ma_liste: ma_liste.txt
+
+# Nombre d'actions retenues chaque jour par marché (5 + 5 = top 10)
+top_par_marche:
+  FR: 5
+  US: 5
+
+# Poids de chaque famille de signaux dans le score global (ramenés à 100 % sur les familles disponibles)
+ponderations:
+  technique: 40
+  fondamental: 30
+  sentiment: 15
+  macro: 15
+
+# Indices de comparaison
+indices:
+  "^FCHI": CAC 40
+  "^GSPC": S&P 500
+
+# Téléchargement des cours : taille des lots et pause entre deux lots (respect des limites Yahoo)
+telechargement:
+  taille_lot: 100
+  pause_secondes: 3

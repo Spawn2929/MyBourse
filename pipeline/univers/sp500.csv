@@ -1,0 +1,504 @@
+ticker,nom,secteur
+A,Agilent Technologies,Santé
+AAPL,Apple Inc.,Technologie
+ABBV,AbbVie,Santé
+ABNB,Airbnb,Consommation cyclique
+ABT,Abbott Laboratories,Santé
+ACGL,Arch Capital Group,Finance
+ACN,Accenture,Technologie
+ADBE,Adobe Inc.,Technologie
+ADI,Analog Devices,Technologie
+ADM,Archer Daniels Midland,Consommation de base
+ADP,Automatic Data Processing,Industrie
+ADSK,Autodesk,Technologie
+AEE,Ameren,Services publics
+AEP,American Electric Power,Services publics
+AES,AES Corporation,Services publics
+AFL,Aflac,Finance
+AIG,American International Group,Finance
+AIZ,Assurant,Finance
+AJG,Arthur J. Gallagher & Co.,Finance
+AKAM,Akamai Technologies,Technologie
+ALB,Albemarle Corporation,Matériaux
+ALGN,Align Technology,Santé
+ALL,Allstate,Finance
+ALLE,Allegion,Industrie
+AMAT,Applied Materials,Technologie
+AMCR,Amcor,Matériaux
+AMD,Advanced Micro Devices,Technologie
+AME,Ametek,Industrie
+AMGN,Amgen,Santé
+AMP,Ameriprise Financial,Finance
+AMT,American Tower,Immobilier
+AMZN,Amazon,Consommation cyclique
+ANET,Arista Networks,Technologie
+AON,Aon plc,Finance
+AOS,A. O. Smith,Industrie
+APA,APA Corporation,Énergie
+APD,Air Products,Matériaux
+APH,Amphenol,Technologie
+APO,Apollo Global Management,Finance
+APP,AppLovin,Communication
+APTV,Aptiv,Consommation cyclique
+ARE,Alexandria Real Estate Equities,Immobilier
+ARES,Ares Management,Finance
+ATO,Atmos Energy,Services publics
+AVGO,Broadcom,Technologie
+AVY,Avery Dennison,Matériaux
+AWK,American Water Works,Services publics
+AXON,Axon Enterprise,Industrie
+AXP,American Express,Finance
+AZO,AutoZone,Consommation cyclique
+BA,Boeing,Industrie
+BAC,Bank of America,Finance
+BALL,Ball Corporation,Matériaux
+BAX,Baxter International,Santé
+BBY,Best Buy,Consommation cyclique
+BDX,Becton Dickinson,Santé
+BE,Bloom Energy,Industrie
+BEN,Franklin Resources,Finance
+BF-B,Brown–Forman,Consommation de base
+BG,Bunge Global,Consommation de base
+BIIB,Biogen,Santé
+BKNG,Booking Holdings,Consommation cyclique
+BKR,Baker Hughes,Énergie
+BLK,BlackRock,Finance
+BMY,Bristol Myers Squibb,Santé
+BNY,BNY Mellon,Finance
+BR,Broadridge Financial Solutions,Industrie
+BRK-B,Berkshire Hathaway,Finance
+BRO,Brown & Brown,Finance
+BSX,Boston Scientific,Santé
+BX,Blackstone Inc.,Finance
+BXP,"BXP, Inc.",Immobilier
+C,Citigroup,Finance
+CAH,Cardinal Health,Santé
+CARR,Carrier Global,Industrie
+CASY,Casey's,Consommation de base
+CAT,Caterpillar Inc.,Industrie
+CB,Chubb Limited,Finance
+CBOE,Cboe Global Markets,Finance
+CBRE,CBRE Group,Immobilier
+CCI,Crown Castle,Immobilier
+CCL,Carnival Corporation,Consommation cyclique
+CDNS,Cadence Design Systems,Technologie
+CDW,CDW Corporation,Technologie
+CEG,Constellation Energy,Services publics
+CF,CF Industries,Matériaux
+CFG,Citizens Financial Group,Finance
+CHD,Church & Dwight,Consommation de base
+CHRW,C.H. Robinson,Industrie
+CHTR,Charter Communications,Communication
+CI,Cigna,Santé
+CIEN,Ciena,Technologie
+CINF,Cincinnati Financial,Finance
+CL,Colgate-Palmolive,Consommation de base
+CLX,Clorox,Consommation de base
+CMCSA,Comcast,Communication
+CME,CME Group,Finance
+CMG,Chipotle Mexican Grill,Consommation cyclique
+CMI,Cummins,Industrie
+CMS,CMS Energy,Services publics
+CNC,Centene Corporation,Santé
+CNP,CenterPoint Energy,Services publics
+COF,Capital One,Finance
+COHR,Coherent Corp.,Technologie
+COIN,Coinbase,Finance
+COO,Cooper Companies (The),Santé
+COP,ConocoPhillips,Énergie
+COR,Cencora,Santé
+COST,Costco,Consommation de base
+CPAY,Corpay,Finance
+CPRT,Copart,Industrie
+CPT,Camden Property Trust,Immobilier
+CRH,CRH plc,Matériaux
+CRL,Charles River Laboratories,Santé
+CRM,Salesforce,Technologie
+CRWD,CrowdStrike,Technologie
+CSCO,Cisco,Technologie
+CSGP,CoStar Group,Immobilier
+CSX,CSX Corporation,Industrie
+CTAS,Cintas,Industrie
+CTSH,Cognizant,Technologie
+CVNA,Carvana,Consommation cyclique
+CVS,CVS Health,Santé
+CVX,Chevron Corporation,Énergie
+D,Dominion Energy,Services publics
+DAL,Delta Air Lines,Industrie
+DASH,DoorDash,Consommation cyclique
+DD,DuPont,Industrie
+DDOG,Datadog,Technologie
+DE,Deere & Company,Industrie
+DECK,Deckers Brands,Consommation cyclique
+DELL,Dell Technologies,Technologie
+DG,Dollar General,Consommation de base
+DGX,Quest Diagnostics,Santé
+DHI,D. R. Horton,Consommation cyclique
+DHR,Danaher Corporation,Santé
+DIS,Walt Disney Company (The),Communication
+DLR,Digital Realty,Immobilier
+DLTR,Dollar Tree,Consommation de base
+DOC,Healthpeak Properties,Immobilier
+DOV,Dover Corporation,Industrie
+DOW,Dow Inc.,Matériaux
+DPZ,Domino's,Consommation cyclique
+DRI,Darden Restaurants,Consommation cyclique
+DTE,DTE Energy,Services publics
+DUK,Duke Energy,Services publics
+DVA,DaVita,Santé
+DVN,Devon Energy,Énergie
+DXCM,Dexcom,Santé
+EBAY,eBay Inc.,Consommation cyclique
+ECHO,EchoStar,Communication
+ECL,Ecolab,Matériaux
+ED,Consolidated Edison,Services publics
+EFX,Equifax,Industrie
+EG,Everest Group,Finance
+EIX,Edison International,Services publics
+EL,Estée Lauder Companies (The),Consommation de base
+ELV,Elevance Health,Santé
+EME,Emcor,Industrie
+EMR,Emerson Electric,Industrie
+EOG,EOG Resources,Énergie
+EQIX,Equinix,Immobilier
+EQT,EQT Corporation,Énergie
+ERIE,Erie Indemnity,Finance
+ES,Eversource Energy,Services publics
+ESS,Essex Property Trust,Immobilier
+ETN,Eaton Corporation,Industrie
+ETR,Entergy,Services publics
+EVRG,Evergy,Services publics
+EW,Edwards Lifesciences,Santé
+EXC,Exelon,Services publics
+EXE,Expand Energy,Énergie
+EXPD,Expeditors International,Industrie
+EXPE,Expedia Group,Consommation cyclique
+EXR,Extra Space Storage,Immobilier
+F,Ford Motor Company,Consommation cyclique
+FANG,Diamondback Energy,Énergie
+FAST,Fastenal,Industrie
+FCX,Freeport-McMoRan,Matériaux
+FDS,FactSet,Finance
+FDX,FedEx,Industrie
+FDXF,FedEx Freight,Industrie
+FE,FirstEnergy,Services publics
+FERG,Ferguson Enterprises,Industrie
+FFIV,"F5, Inc.",Technologie
+FICO,Fair Isaac,Technologie
+FIS,Fidelity National Information Services,Finance
+FISV,Fiserv,Finance
+FITB,Fifth Third Bancorp,Finance
+FIX,Comfort Systems USA,Industrie
+FLEX,Flex Ltd.,Technologie
+FOX,Fox Corporation (Class B),Communication
+FOXA,Fox Corporation (Class A),Communication
+FRT,Federal Realty Investment Trust,Immobilier
+FSLR,First Solar,Technologie
+FTNT,Fortinet,Technologie
+FTV,Fortive,Industrie
+GD,General Dynamics,Industrie
+GDDY,GoDaddy,Technologie
+GE,GE Aerospace,Industrie
+GEHC,GE HealthCare,Santé
+GEN,Gen Digital,Technologie
+GEV,GE Vernova,Industrie
+GILD,Gilead Sciences,Santé
+GIS,General Mills,Consommation de base
+GL,Globe Life,Finance
+GLW,Corning Inc.,Technologie
+GM,General Motors,Consommation cyclique
+GNRC,Generac,Industrie
+GOOG,Alphabet Inc. (Class C),Communication
+GOOGL,Alphabet Inc. (Class A),Communication
+GPC,Genuine Parts Company,Consommation cyclique
+GPN,Global Payments,Finance
+GRMN,Garmin,Consommation cyclique
+GS,Goldman Sachs,Finance
+GWW,W. W. Grainger,Industrie
+HAL,Halliburton,Énergie
+HAS,Hasbro,Consommation cyclique
+HBAN,Huntington Bancshares,Finance
+HCA,HCA Healthcare,Santé
+HD,Home Depot (The),Consommation cyclique
+HIG,Hartford (The),Finance
+HII,Huntington Ingalls Industries,Industrie
+HLT,Hilton Worldwide,Consommation cyclique
+HON,Honeywell Technologies,Industrie
+HONA,Honeywell Aerospace,Industrie
+HOOD,Robinhood Markets,Finance
+HPE,Hewlett Packard Enterprise,Technologie
+HPQ,HP Inc.,Technologie
+HRL,Hormel Foods,Consommation de base
+HSIC,Henry Schein,Santé
+HST,Host Hotels & Resorts,Immobilier
+HSY,Hershey Company (The),Consommation de base
+HUBB,Hubbell Incorporated,Industrie
+HUM,Humana,Santé
+HWM,Howmet Aerospace,Industrie
+IBKR,Interactive Brokers,Finance
+IBM,IBM,Technologie
+ICE,Intercontinental Exchange,Finance
+IDXX,Idexx Laboratories,Santé
+IEX,IDEX Corporation,Industrie
+IFF,International Flavors & Fragrances,Matériaux
+ILMN,"Illumina, Inc.",Santé
+INCY,Incyte,Santé
+INTC,Intel,Technologie
+INTU,Intuit,Technologie
+INVH,Invitation Homes,Immobilier
+IP,International Paper,Matériaux
+IQV,IQVIA,Santé
+IR,Ingersoll Rand,Industrie
+IRM,Iron Mountain,Immobilier
+ISRG,Intuitive Surgical,Santé
+IT,Gartner,Technologie
+ITW,Illinois Tool Works,Industrie
+IVZ,Invesco,Finance
+J,Jacobs Solutions,Industrie
+JBHT,J.B. Hunt,Industrie
+JBL,Jabil,Technologie
+JCI,Johnson Controls,Industrie
+JKHY,Jack Henry & Associates,Finance
+JNJ,Johnson & Johnson,Santé
+JPM,JPMorgan Chase,Finance
+KDP,Keurig Dr Pepper,Consommation de base
+KEY,KeyCorp,Finance
+KEYS,Keysight Technologies,Technologie
+KHC,Kraft Heinz,Consommation de base
+KIM,Kimco Realty,Immobilier
+KKR,KKR & Co.,Finance
+KLAC,KLA Corporation,Technologie
+KMB,Kimberly-Clark,Consommation de base
+KMI,Kinder Morgan,Énergie
+KO,Coca-Cola Company (The),Consommation de base
+KR,Kroger,Consommation de base
+L,Loews Corporation,Finance
+LDOS,Leidos,Industrie
+LEN,Lennar,Consommation cyclique
+LH,Labcorp,Santé
+LHX,L3Harris,Industrie
+LII,Lennox International,Industrie
+LIN,Linde plc,Matériaux
+LITE,Lumentum,Technologie
+LLY,Lilly (Eli),Santé
+LMT,Lockheed Martin,Industrie
+LNT,Alliant Energy,Services publics
+LOW,Lowe's,Consommation cyclique
+LRCX,Lam Research,Technologie
+LULU,Lululemon Athletica,Consommation cyclique
+LUV,Southwest Airlines,Industrie
+LVS,Las Vegas Sands,Consommation cyclique
+LYB,LyondellBasell,Matériaux
+LYV,Live Nation Entertainment,Communication
+MA,Mastercard,Finance
+MAA,Mid-America Apartment Communities,Immobilier
+MAR,Marriott International,Consommation cyclique
+MAS,Masco,Industrie
+MCD,McDonald's,Consommation cyclique
+MCHP,Microchip Technology,Technologie
+MCK,McKesson,Santé
+MCO,Moody's Corporation,Finance
+MDLZ,Mondelez International,Consommation de base
+MDT,Medtronic,Santé
+MET,MetLife,Finance
+META,Meta Platforms,Communication
+MGM,MGM Resorts,Consommation cyclique
+MKC,McCormick & Company,Consommation de base
+MLM,Martin Marietta Materials,Matériaux
+MMM,3M,Industrie
+MNST,Monster Beverage,Consommation de base
+MO,Altria,Consommation de base
+MOS,Mosaic Company (The),Matériaux
+MPC,Marathon Petroleum,Énergie
+MPWR,Monolithic Power Systems,Technologie
+MRK,Merck & Co.,Santé
+MRNA,Moderna,Santé
+MRSH,Marsh McLennan,Finance
+MRVL,Marvell Technology,Technologie
+MS,Morgan Stanley,Finance
+MSCI,MSCI,Finance
+MSFT,Microsoft,Technologie
+MSI,Motorola Solutions,Technologie
+MTB,M&T Bank,Finance
+MTD,Mettler Toledo,Santé
+MU,Micron Technology,Technologie
+NCLH,Norwegian Cruise Line Holdings,Consommation cyclique
+NDAQ,"Nasdaq, Inc.",Finance
+NDSN,Nordson Corporation,Industrie
+NEE,NextEra Energy,Services publics
+NEM,Newmont,Matériaux
+NFLX,Netflix,Communication
+NI,NiSource,Services publics
+NKE,"Nike, Inc.",Consommation cyclique
+NOC,Northrop Grumman,Industrie
+NOW,ServiceNow,Technologie
+NRG,NRG Energy,Services publics
+NSC,Norfolk Southern,Industrie
+NTAP,NetApp,Technologie
+NTRS,Northern Trust,Finance
+NUE,Nucor,Matériaux
+NVDA,Nvidia,Technologie
+NVR,"NVR, Inc.",Consommation cyclique
+NWS,News Corp (Class B),Communication
+NWSA,News Corp (Class A),Communication
+NXPI,NXP Semiconductors,Technologie
+O,Realty Income,Immobilier
+ODFL,Old Dominion,Industrie
+OKE,Oneok,Énergie
+OKTA,"Okta, Inc.",Technologie
+OMC,Omnicom Group,Communication
+ON,ON Semiconductor,Technologie
+ORCL,Oracle Corporation,Technologie
+ORLY,O'Reilly Automotive,Consommation cyclique
+OTIS,Otis Worldwide,Industrie
+OXY,Occidental Petroleum,Énergie
+P,Everpure,Technologie
+PANW,Palo Alto Networks,Technologie
+PAYX,Paychex,Industrie
+PCAR,Paccar,Industrie
+PCG,PG&E Corporation,Services publics
+PEG,Public Service Enterprise Group,Services publics
+PEP,PepsiCo,Consommation de base
+PFE,Pfizer,Santé
+PFG,Principal Financial Group,Finance
+PG,Procter & Gamble,Consommation de base
+PGR,Progressive Corporation,Finance
+PH,Parker Hannifin,Industrie
+PHM,PulteGroup,Consommation cyclique
+PKG,Packaging Corporation of America,Matériaux
+PLD,Prologis,Immobilier
+PLTR,Palantir Technologies,Technologie
+PM,Philip Morris International,Consommation de base
+PNC,PNC Financial Services,Finance
+PNR,Pentair,Industrie
+PNW,Pinnacle West Capital,Services publics
+PODD,Insulet Corporation,Santé
+PPG,PPG Industries,Matériaux
+PPL,PPL Corporation,Services publics
+PRU,Prudential Financial,Finance
+PSA,Public Storage,Immobilier
+PSX,Phillips 66,Énergie
+PTC,PTC Inc.,Technologie
+PWR,Quanta Services,Industrie
+PYPL,PayPal,Finance
+Q,Qnity Electronics,Technologie
+QCOM,Qualcomm,Technologie
+RCL,Royal Caribbean Group,Consommation cyclique
+RDDT,Reddit,Communication
+REG,Regency Centers,Immobilier
+REGN,Regeneron Pharmaceuticals,Santé
+RF,Regions Financial Corporation,Finance
+RJF,Raymond James Financial,Finance
+RL,Ralph Lauren Corporation,Consommation cyclique
+RMD,ResMed,Santé
+ROK,Rockwell Automation,Industrie
+ROL,"Rollins, Inc.",Industrie
+ROP,Roper Technologies,Technologie
+ROST,Ross Stores,Consommation cyclique
+RSG,Republic Services,Industrie
+RTX,RTX Corporation,Industrie
+RVTY,Revvity,Santé
+SBAC,SBA Communications,Immobilier
+SBUX,Starbucks,Consommation cyclique
+SCHW,Charles Schwab Corporation,Finance
+SHW,Sherwin-Williams,Matériaux
+SJM,J.M. Smucker Company (The),Consommation de base
+SKYD,Skydance,Communication
+SLB,Schlumberger,Énergie
+SMCI,Supermicro,Technologie
+SNA,Snap-on,Industrie
+SNDK,Sandisk,Technologie
+SNPS,Synopsys,Technologie
+SO,Southern Company,Services publics
+SOLV,Solventum,Santé
+SPG,Simon Property Group,Immobilier
+SPGI,S&P Global,Finance
+SRE,Sempra,Services publics
+STE,Steris,Santé
+STLD,Steel Dynamics,Matériaux
+STT,State Street Corporation,Finance
+STX,Seagate Technology,Technologie
+STZ,Constellation Brands,Consommation de base
+SW,Smurfit Westrock,Matériaux
+SWK,Stanley Black & Decker,Industrie
+SWKS,Skyworks Solutions,Technologie
+SYF,Synchrony Financial,Finance
+SYK,Stryker Corporation,Santé
+SYY,Sysco,Consommation de base
+T,AT&T,Communication
+TDG,TransDigm Group,Industrie
+TDY,Teledyne Technologies,Technologie
+TECH,Bio-Techne,Santé
+TEL,TE Connectivity,Technologie
+TER,Teradyne,Technologie
+TFC,Truist Financial,Finance
+TGT,Target Corporation,Consommation de base
+TJX,TJX Companies,Consommation cyclique
+TKO,TKO Group Holdings,Communication
+TMO,Thermo Fisher Scientific,Santé
+TMUS,T-Mobile US,Communication
+TPL,Texas Pacific Land Corporation,Énergie
+TPR,"Tapestry, Inc.",Consommation cyclique
+TRGP,Targa Resources,Énergie
+TRMB,Trimble Inc.,Technologie
+TROW,T. Rowe Price,Finance
+TRV,Travelers Companies (The),Finance
+TSCO,Tractor Supply,Consommation cyclique
+TSLA,"Tesla, Inc.",Consommation cyclique
+TSN,Tyson Foods,Consommation de base
+TT,Trane Technologies,Industrie
+TTWO,Take-Two Interactive,Communication
+TWLO,Twilio,Technologie
+TXN,Texas Instruments,Technologie
+TXT,Textron,Industrie
+TYL,Tyler Technologies,Technologie
+UAL,United Airlines Holdings,Industrie
+UBER,Uber,Industrie
+UDR,"UDR, Inc.",Immobilier
+UHS,Universal Health Services,Santé
+ULTA,Ulta Beauty,Consommation cyclique
+UNH,UnitedHealth Group,Santé
+UNP,Union Pacific Corporation,Industrie
+UPS,United Parcel Service,Industrie
+URI,United Rentals,Industrie
+USB,U.S. Bancorp,Finance
+V,Visa Inc.,Finance
+VEEV,Veeva Systems,Santé
+VICI,Vici Properties,Immobilier
+VLO,Valero Energy,Énergie
+VLTO,Veralto,Industrie
+VMC,Vulcan Materials Company,Matériaux
+VMRK,Vivmark Residential,Immobilier
+VRSK,Verisk Analytics,Industrie
+VRSN,Verisign,Technologie
+VRT,Vertiv,Industrie
+VRTX,Vertex Pharmaceuticals,Santé
+VST,Vistra Corp.,Services publics
+VTR,Ventas,Immobilier
+VTRS,Viatris,Santé
+VYLR,Vylor,Consommation de base
+VZ,Verizon,Communication
+WAB,Wabtec,Industrie
+WAT,Waters Corporation,Santé
+WDAY,"Workday, Inc.",Technologie
+WDC,Western Digital,Technologie
+WEC,WEC Energy Group,Services publics
+WELL,Welltower,Immobilier
+WFC,Wells Fargo,Finance
+WM,Waste Management,Industrie
+WMB,Williams Companies,Énergie
+WMT,Walmart,Consommation de base
+WRB,W. R. Berkley Corporation,Finance
+WSM,"Williams-Sonoma, Inc.",Consommation cyclique
+WST,West Pharmaceutical Services,Santé
+WTW,Willis Towers Watson,Finance
+WY,Weyerhaeuser,Immobilier
+WYNN,Wynn Resorts,Consommation cyclique
+XEL,Xcel Energy,Services publics
+XOM,ExxonMobil,Énergie
+XYL,Xylem Inc.,Industrie
+XYZ,"Block, Inc.",Finance
+YUM,Yum! Brands,Consommation cyclique
+ZBH,Zimmer Biomet,Santé
+ZBRA,Zebra Technologies,Technologie
+ZTS,Zoetis,Santé

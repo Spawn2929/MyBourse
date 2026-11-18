@@ -1,0 +1,28 @@
+# Dépendances et fichiers générés
+node_modules/
+.wrangler/
+build/
+.gradle/
+local.properties
+*.iml
+.idea/
+.kotlin/
+
+# Secrets : ne jamais publier
+.dev.vars
+*.jks
+*.keystore
+keystore.properties
+google-services.json
+firebase-service-account*.json
+secrets/
+
+# APK téléchargés pour installation
+apk/
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+# Publication locale (la vraie est dans la branche data)
+publication/

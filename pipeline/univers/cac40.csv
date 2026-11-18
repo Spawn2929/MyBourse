@@ -1,0 +1,41 @@
+ticker,nom,secteur
+AC.PA,Accor,Consommation cyclique
+ACA.PA,Crédit Agricole,Finance
+AI.PA,Air Liquide,Matériaux
+AIR.PA,Airbus,Industrie
+BN.PA,Danone,Consommation de base
+BNP.PA,BNP Paribas,Finance
+BVI.PA,Bureau Veritas,Industrie
+CA.PA,Carrefour,Consommation de base
+CAP.PA,Capgemini,Technologie
+CS.PA,Axa,Finance
+DG.PA,Vinci,Industrie
+DSY.PA,Dassault Systèmes,Technologie
+EL.PA,EssilorLuxottica,Santé
+EN.PA,Bouygues,Industrie
+ENGI.PA,Engie,Services publics
+ENX.PA,Euronext,Finance
+ERF.PA,Eurofins Scientific,Santé
+FGR.PA,Eiffage,Industrie
+GLE.PA,Société Générale,Finance
+HO.PA,Thales,Industrie
+KER.PA,Kering,Consommation cyclique
+LR.PA,Legrand,Industrie
+MC.PA,LVMH,Consommation cyclique
+ML.PA,Michelin,Industrie
+MT.AS,ArcelorMittal,Matériaux
+OR.PA,L'Oréal,Consommation de base
+ORA.PA,Orange,Communication
+PUB.PA,Publicis,Communication
+RI.PA,Pernod Ricard,Consommation de base
+RMS.PA,Hermès,Consommation cyclique
+RNO.PA,Renault,Consommation cyclique
+SAF.PA,Safran,Industrie
+SAN.PA,Sanofi,Santé
+SGO.PA,Saint-Gobain,Industrie
+STLAP.PA,Stellantis,Consommation cyclique
+STMPA.PA,STMicroelectronics,Technologie
+SU.PA,Schneider Electric,Industrie
+TTE.PA,TotalEnergies,Énergie
+URW.PA,Unibail-Rodamco-Westfield,Immobilier
+VIE.PA,Veolia,Industrie
