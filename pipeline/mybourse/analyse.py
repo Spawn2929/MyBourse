@@ -38,7 +38,7 @@ def _arrondi(v):
 
 def analyser(titres: dict[str, dict], cours: dict[str, pd.DataFrame], ponderations: dict,
              top_par_marche: dict[str, int]) -> tuple[dict, dict[str, list[str]]]:
-    """titres : ticker -> {nom, marche, secteur, devise}.
+    """titres : ticker -> {nom, marche, secteur, devise, capi_eur?, grande?}.
 
     Renvoie (fiches par titre, top par marché). Les rangs de performance sont calculés au sein
     de chaque marché ; les titres de « ma liste » (marché LISTE) sont comparés à l'ensemble.
@@ -77,13 +77,20 @@ def analyser(titres: dict[str, dict], cours: dict[str, pd.DataFrame], ponderatio
                 "perf_6m": _arrondi(i["perf_6m"]), "perf_1a": _arrondi(i["perf_1a"]),
                 "rsi": _arrondi(i["rsi"]), "mm50": round(i["mm50"], 4), "mm200": round(i["mm200"], 4),
                 "macd_hist": _arrondi(i["macd_hist"]), "ratio_volume": _arrondi(i["ratio_volume"]),
+                "volatilite": _arrondi(i.get("volatilite")),
             },
             "notes_technique": notes,
         }
+        if meta.get("capi_eur"):
+            fiches[t]["capi"] = round(meta["capi_eur"] / 1e9, 2)  # en milliards d'euros
+        if meta.get("grande"):
+            fiches[t]["grande"] = True
 
     top = {}
     for marche, n in top_par_marche.items():
-        membres = [t for t in groupes.get(marche, []) if fiches[t]["score"] is not None]
+        # Les grandes valeurs (CAC 40, S&P 500, plus de 10 Md€) sont exclues des tops
+        membres = [t for t in groupes.get(marche, [])
+                   if fiches[t]["score"] is not None and not titres[t].get("grande")]
         membres.sort(key=lambda t: (-fiches[t]["score"], t))
         top[marche] = membres[:n]
     return fiches, top

@@ -23,21 +23,25 @@
 
 ## 🙋 Mettre à jour plus tard
 
-Même chose avec le nouvel APK : **installer par-dessus**, le portefeuille est conservé.
-Ne jamais désinstaller l'appli : le portefeuille serait effacé (sauf sauvegarde exportée).
+Même chose avec le nouvel APK : **installer par-dessus**, les portefeuilles sont conservés.
+Ne jamais désinstaller l'appli : les portefeuilles seraient effacés (sauf sauvegarde exportée).
+En passant de la v0.1 à la v0.2, l'ancien portefeuille devient « Principal » avec son capital et ses frais.
+Par prudence, faire **Réglages > Exporter** avant la mise à jour.
 
-## 🙋 Sauvegarder le portefeuille
+## 🙋 Sauvegarder les portefeuilles
 
-**Réglages > Exporter** : choisir Drive ou le dossier Téléchargements. Pour restaurer : **Réglages > Importer**.
+**Réglages > Exporter** : choisir Drive ou le dossier Téléchargements (tous les portefeuilles sont dans le fichier).
+Pour restaurer : **Réglages > Importer** (une sauvegarde de la v0.1 est aussi acceptée).
 
 ## 🤖 Lancer l'analyse à la main
 
-github.com > dépôt MyBourse > **Actions** > **Analyse quotidienne** > **Run workflow**.
+github.com > dépôt MyBourse > **Actions** > **Analyse quotidienne** > **Run workflow**
+(cocher « Refaire la liste des titres analysés » pour la reconstruire sans attendre la semaine suivante).
 
 ## 🤖 Fabriquer un APK
 
 ```bash
-cd /c/Developpement_Claude/MyBourse && git tag v0.1.1 && git push origin v0.1.1
+cd /c/Developpement_Claude/MyBourse && git tag v0.2.1 && git push origin v0.2.1
 ```
 
 ## 🤖 Essayer sur le PC

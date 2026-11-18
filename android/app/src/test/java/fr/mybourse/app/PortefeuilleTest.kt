@@ -5,7 +5,8 @@ import fr.mybourse.app.data.Frais
 import fr.mybourse.app.data.Operation
 import fr.mybourse.app.data.Sauvegarde
 import fr.mybourse.app.data.OperationSauvee
-import fr.mybourse.app.data.Reglages
+import fr.mybourse.app.data.PortefeuilleSauve
+import fr.mybourse.app.data.niveauVolatilite
 import fr.mybourse.app.data.Selection
 import fr.mybourse.app.data.Sens
 import fr.mybourse.app.data.bilan
@@ -118,11 +119,41 @@ class PortefeuilleTest {
     }
 
     @Test fun sauvegardeAllerRetour() {
-        val ops = listOf(achat("X", 3, 10.0)).map { OperationSauvee.depuis(it) }
-        val texte = Sauvegarde.ecrire(Sauvegarde(reglages = Reglages(capital = 5000.0), operations = ops))
-        val lu = Sauvegarde.lire(texte)
-        assertEquals(5000.0, lu.reglages.capital, 1e-9)
-        assertEquals(1, lu.operations.size)
+        val p1 = PortefeuilleSauve("Principal", 5000.0, 0.1, 1.0, 1, listOf(achat("X", 3, 10.0)).map { OperationSauvee.depuis(it) })
+        val p2 = PortefeuilleSauve("Prudent", 20_000.0, 0.5, 5.0, 2)
+        val lu = Sauvegarde.lire(Sauvegarde.ecrire(Sauvegarde(portefeuilles = listOf(p1, p2))))
+        assertEquals(2, lu.portefeuilles.size)
+        assertEquals(5000.0, lu.portefeuilles[0].capital, 1e-9)
+        assertEquals(1, lu.portefeuilles[0].operations.size)
+        assertEquals("Prudent", lu.portefeuilles[1].nom)
+        assertEquals(5.0, lu.portefeuilles[1].fraisMin, 1e-9)
         assertNotNull(runCatching { Sauvegarde.lire("{\"appli\":\"Autre\"}") }.exceptionOrNull())
+    }
+
+    @Test fun ancienneSauvegardeV01() {
+        val texte = """{"format":1,"appli":"MyBourse","exporteLe":"2026-11-18",
+            "reglages":{"capital":8000.0,"fraisPct":0.2,"fraisMin":2.0,"theme":"SOMBRE","marches":["FR","US"]},
+            "operations":[{"ticker":"AI.PA","nom":"Air Liquide","devise":"EUR","sens":"ACHAT","quantite":2,
+              "prix":190.0,"change":1.0,"frais":2.0,"date":1}]}"""
+        val p = Sauvegarde.lire(texte).portefeuilles.single()
+        assertEquals("Principal", p.nom)
+        assertEquals(8000.0, p.capital, 1e-9)
+        assertEquals(0.2, p.fraisPct, 1e-9)
+        assertEquals(1, p.operations.size)
+    }
+
+    @Test fun sauvegardeIncoherenteRefusee() {
+        val p = PortefeuilleSauve("Trop petit", 100.0, 0.1, 1.0, 1, listOf(achat("X", 30, 10.0)).map { OperationSauvee.depuis(it) })
+        val e = runCatching { Sauvegarde.lire(Sauvegarde.ecrire(Sauvegarde(portefeuilles = listOf(p)))) }.exceptionOrNull()
+        assertTrue(e!!.message!!.contains("Trop petit"))
+    }
+
+    @Test fun volatiliteEtCapitalisation() {
+        assertEquals("faible", niveauVolatilite(15.0))
+        assertEquals("élevée", niveauVolatilite(42.0))
+        assertEquals("très élevée", niveauVolatilite(80.0))
+        assertEquals("1,2 Md€", Format.capi(1.23))
+        assertEquals("450 M€", Format.capi(0.45))
+        assertEquals("0,1 % (minimum " + Format.euros(1.0) + ")", Format.fraisTexte(frais))
     }
 }

@@ -27,6 +27,8 @@ data class Operation(
     /** Frais de courtage simulés, en euros. */
     val frais: Double,
     val date: Long,
+    /** Identifiant du portefeuille. */
+    val portefeuille: Long = 1,
 ) {
     val brutEur: Double get() = centimes(quantite * prix * change)
 }

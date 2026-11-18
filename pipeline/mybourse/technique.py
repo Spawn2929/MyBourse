@@ -54,7 +54,16 @@ def indicateurs(df: pd.DataFrame) -> dict | None:
         "macd_hist": float(hist.iloc[-1]),
         "macd_hist_5j": float(hist.iloc[-6]),
         "ratio_volume": float(vol20 / vol100) if vol100 > 0 else None,
+        "volatilite": volatilite(close),
     }
+
+
+def volatilite(close: pd.Series, jours: int = 252) -> float | None:
+    """Volatilité annualisée sur un an, en % : l'amplitude habituelle des variations du cours."""
+    rendements = np.log(close).diff().dropna().tail(jours)
+    if len(rendements) < 60:
+        return None
+    return float(rendements.std() * math.sqrt(252) * 100)
 
 
 def _note_rsi(r: float) -> float:

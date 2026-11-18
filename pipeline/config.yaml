@@ -1,17 +1,51 @@
 # Réglages du programme d'analyse quotidien de MyBourse.
 # Modifiable directement sur GitHub (icône crayon) : la prochaine analyse en tiendra compte.
 
-# Marchés analysés : nom affiché -> fichier de la liste des actions (dans pipeline/univers/)
-univers:
-  FR: univers/cac40.csv
-  US: univers/sp500.csv
+# Zones analysées : pays (code Yahoo) -> places de cotation retenues (une seule par pays, pour éviter les doublons).
+# La liste des titres est reconstruite chaque semaine avec le filtre d'actions de Yahoo.
+zones:
+  FR:
+    fr: [PAR]                 # Euronext Paris (dont Euronext Growth)
+  EU:
+    de: [GER]                 # Xetra
+    gb: [LSE]                 # Londres
+    ch: [EBS]                 # Zurich
+    nl: [AMS]                 # Amsterdam
+    it: [MIL]                 # Milan
+    es: [MCE]                 # Madrid
+    se: [STO]                 # Stockholm
+    dk: [CPH]                 # Copenhague
+    "no": [OSL]               # Oslo
+    fi: [HEL]                 # Helsinki
+    be: [BRU]                 # Bruxelles
+    at: [VIE]                 # Vienne
+    ie: [ISE]                 # Dublin
+    pt: [LIS]                 # Lisbonne
+  US:
+    us: [NMS, NYQ, NGM, NCM, ASE]   # Nasdaq, NYSE, NYSE American (hors marché de gré à gré)
+
+# Filtres de l'univers (montants en euros)
+filtres:
+  capitalisation_min_eur: 200000000      # 200 M€
+  echanges_min_eur_par_jour: 500000      # 500 000 € échangés par jour en moyenne (3 mois)
+  cours_min: 1                           # 1 € ou 1 $ minimum
+  grande_valeur_eur: 10000000000         # au-delà de 10 Md€ : grande valeur, hors des tops
+
+# Grandes valeurs exclues des tops (mais analysées et achetables)
+grands_indices:
+  - univers/cac40.csv
+  - univers/sp500.csv
+
+# Reconstruction de l'univers : tous les combien de jours
+univers_jours: 7
 
 # Titres supplémentaires à analyser chaque soir (actions ou ETF, codes Yahoo, un par ligne)
 ma_liste: ma_liste.txt
 
-# Nombre d'actions retenues chaque jour par marché (5 + 5 = top 10)
+# Nombre d'actions retenues chaque jour par zone
 top_par_marche:
   FR: 5
+  EU: 5
   US: 5
 
 # Poids de chaque famille de signaux dans le score global (ramenés à 100 % sur les familles disponibles)
@@ -25,6 +59,8 @@ ponderations:
 indices:
   "^FCHI": CAC 40
   "^GSPC": S&P 500
+  "^RUT": Russell 2000
+  "^STOXX": STOXX Europe 600
 
 # Téléchargement des cours : taille des lots et pause entre deux lots (respect des limites Yahoo)
 telechargement:

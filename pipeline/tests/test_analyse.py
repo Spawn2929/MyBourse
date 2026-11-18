@@ -96,3 +96,56 @@ def test_format_pourcentage():
     assert technique._pct(9.97) == "+10 %"
     assert technique._pct(4.71) == "+4,7 %"
     assert technique._pct(-12.3) == "−12 %"
+
+
+# ---------- Univers (filtre Yahoo) et grandes valeurs ----------
+
+from mybourse import univers  # noqa: E402
+
+FX = {"EUR": 1.0, "USD": 1.16, "GBP": 0.88, "SEK": 11.0}
+FILTRES = {"capitalisation_min_eur": 200e6, "echanges_min_eur_par_jour": 500e3, "cours_min": 1,
+           "grande_valeur_eur": 10e9}
+
+
+def cotation(**kw):
+    q = {"symbol": "ABC.PA", "currency": "EUR", "quoteType": "EQUITY", "marketCap": 500e6,
+         "regularMarketPrice": 20.0, "averageDailyVolume3Month": 50_000, "longName": "Abc SA"}
+    return q | kw
+
+
+def test_filtre_univers_garde_une_valeur_moyenne():
+    t = univers.filtrer(cotation(), "FR", "Industrials", FX, FILTRES)
+    assert t["nom"] == "Abc SA" and t["secteur"] == "Industrie" and t["capi_eur"] == 500_000_000
+
+
+def test_filtre_univers_ecarte_petites_illiquides_et_obligations():
+    assert univers.filtrer(cotation(marketCap=150e6), "FR", "Industrials", FX, FILTRES) is None
+    assert univers.filtrer(cotation(averageDailyVolume3Month=10_000), "FR", "Industrials", FX, FILTRES) is None  # 200 k€/j
+    assert univers.filtrer(cotation(marketCap=None), "FR", "Industrials", FX, FILTRES) is None
+    assert univers.filtrer(cotation(regularMarketPrice=0.8, averageDailyVolume3Month=10**7), "FR", "Industrials", FX, FILTRES) is None
+    assert univers.filtrer(cotation(symbol="ABC-PA", currency="USD"), "US", "Industrials", FX, FILTRES) is None
+
+
+def test_filtre_univers_convertit_les_devises():
+    # Couronnes suédoises : 1 Md SEK ≈ 91 M€ -> trop petit
+    assert univers.filtrer(cotation(symbol="X.ST", currency="SEK", marketCap=1e9), "EU", "Energy", FX, FILTRES) is None
+    # Pence : 500 GBp = 5 £ ≈ 5,7 € ; 200 000 titres/jour ≈ 1,1 M€
+    t = univers.filtrer(cotation(symbol="X.L", currency="GBp", marketCap=1e9, regularMarketPrice=500,
+                                 averageDailyVolume3Month=200_000), "EU", "Energy", FX, FILTRES)
+    assert t is not None and t["capi_eur"] == round(1e9 / 0.88)
+
+
+def test_grandes_valeurs_exclues_du_top():
+    titres = {"PETITE": {"nom": "P", "marche": "FR", "devise": "EUR"},
+              "GEANT": {"nom": "G", "marche": "FR", "devise": "EUR", "grande": True}}
+    cours = {"PETITE": hausse(pente=0.001), "GEANT": hausse(pente=0.003)}
+    poids = {"technique": 100}
+    fiches, top = analyse.analyser(titres, cours, poids, {"FR": 5})
+    assert top["FR"] == ["PETITE"]
+    assert fiches["GEANT"]["grande"] is True and fiches["GEANT"]["score"] is not None
+
+
+def test_volatilite():
+    calme = serie(100 + np.arange(300) * 0.01)
+    agite = serie(100 * (1 + 0.05 * np.sin(np.arange(300) * 1.7)))
+    assert technique.volatilite(calme["Close"]) < 2 < 30 < technique.volatilite(agite["Close"])

@@ -13,7 +13,8 @@ import fr.mybourse.app.data.Devises
 import fr.mybourse.app.data.Ligne
 import fr.mybourse.app.data.Operation
 import fr.mybourse.app.data.OperationEntity
-import fr.mybourse.app.data.OperationSauvee
+import fr.mybourse.app.data.PortefeuilleEntity
+import fr.mybourse.app.data.PortefeuilleSauve
 import fr.mybourse.app.data.Reglages
 import fr.mybourse.app.data.ReglagesStore
 import fr.mybourse.app.data.Reseau
@@ -29,12 +30,13 @@ import fr.mybourse.app.data.simulerVente
 import java.io.File
 import java.time.Instant
 import java.time.LocalDate
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -75,6 +77,16 @@ data class Recherche(
     val erreur: String? = null,
 )
 
+/** Un portefeuille, ses opérations et sa valeur au dernier cours connu. */
+data class VuePortefeuille(
+    val portefeuille: PortefeuilleEntity,
+    val operations: List<Operation>,
+    val valorisation: Valorisation,
+) {
+    val id: Long get() = portefeuille.id
+    fun ligne(ticker: String): Ligne? = valorisation.lignes.firstOrNull { it.position.ticker == ticker }
+}
+
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val dao = BaseMyBourse.get(app).dao()
@@ -86,25 +98,37 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val chargement = MutableStateFlow(false)
     val erreurSelection = MutableStateFlow<String?>(null)
     private val messages = Channel<Message>(Channel.BUFFERED)
-    val flux: kotlinx.coroutines.flow.Flow<Message> = messages.receiveAsFlow()
+    val flux: Flow<Message> = messages.receiveAsFlow()
 
-    val operations: StateFlow<List<Operation>> = dao.operations().map { l -> l.map { it.versOperation() } }
+    private val portefeuillesBruts = dao.portefeuilles()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val toutesOperations: StateFlow<List<Operation>> = dao.operations().map { l -> l.map { it.versOperation() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val cours: StateFlow<Map<String, CoursEntity>> = dao.cours().map { l -> l.associateBy { it.ticker } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
-    val valorisation: StateFlow<Valorisation?> = combine(reglages, operations, cours, selection) { r, ops, c, s ->
-        if (r == null) return@combine null
-        val b = bilan(r.capital, ops)
-        Valorisation(
-            capital = r.capital,
-            liquidites = b.liquidites,
-            lignes = b.positions.map { p ->
-                val cc = dernierCours(p.ticker, c, s)
-                Ligne(p, cc?.prix, taux(p.devise, c, s))
-            },
-            plusValuesRealisees = b.plusValuesRealisees,
-        )
+    /** Tous les portefeuilles, valorisés, dans l'ordre de création. */
+    val portefeuilles: StateFlow<List<VuePortefeuille>> =
+        combine(portefeuillesBruts, toutesOperations, cours, selection) { ps, ops, c, s ->
+            val parPortefeuille = ops.groupBy { it.portefeuille }
+            ps.map { p ->
+                val o = parPortefeuille[p.id].orEmpty()
+                val b = bilan(p.capital, o)
+                VuePortefeuille(
+                    p, o,
+                    Valorisation(
+                        capital = p.capital,
+                        liquidites = b.liquidites,
+                        lignes = b.positions.map { pos -> Ligne(pos, dernierCours(pos.ticker, c, s)?.prix, taux(pos.devise, c, s)) },
+                        plusValuesRealisees = b.plusValuesRealisees,
+                    ),
+                )
+            }
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Portefeuille affiché dans l'onglet Portefeuille. */
+    val actif: StateFlow<VuePortefeuille?> = combine(portefeuilles, reglages) { ps, r ->
+        ps.firstOrNull { it.id == r?.actif } ?: ps.firstOrNull()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val pile = mutableStateListOf<Ecran>()
@@ -115,7 +139,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { runCatching { Selection.lire(cache.readText()) }.getOrNull() }
+            // Premier lancement (ou passage de la v0.1) : le portefeuille « Principal » reprend l'ancien capital et les anciens frais
+            if (dao.portefeuillesListe().isEmpty()) {
+                val a = store.anciens()
+                dao.enregistrerPortefeuille(PortefeuilleEntity(1, "Principal", a.capital, a.fraisPct, a.fraisMin, System.currentTimeMillis()))
+            }
+        }
+        viewModelScope.launch {
+            withContext(Dispatchers.Default) { runCatching { Selection.lire(cache.readText()) }.getOrNull() }
                 ?.let { selection.value = it }
             rafraichir()
         }
@@ -152,13 +183,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private suspend fun majTaux(devises: Collection<String>) {
         val bases = devises.map { Devises.base(it).first }.filter { it != "EUR" }.toSet()
-        val res = coroutineScopeAll(bases) { b ->
+        val res = enParallele(bases) { b ->
             runCatching { CoursEntity("FX:$b", "$b → EUR", "EUR", Reseau.tauxVersEur(b), System.currentTimeMillis()) }.getOrNull()
         }
         if (res.isNotEmpty()) dao.enregistrerCours(res)
     }
 
-    private suspend fun <T, R : Any> coroutineScopeAll(items: Collection<T>, f: suspend (T) -> R?): List<R> =
+    private suspend fun <T, R : Any> enParallele(items: Collection<T>, f: suspend (T) -> R?): List<R> =
         kotlinx.coroutines.coroutineScope { items.map { async { f(it) } }.awaitAll().filterNotNull() }
 
     // ---------- Actualisation ----------
@@ -170,7 +201,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 try {
                     val texte = Reseau.texte(BuildConfig.DATA_URL + "?t=" + System.currentTimeMillis() / 300_000)
-                    val s = Selection.lire(texte)
+                    val s = withContext(Dispatchers.Default) { Selection.lire(texte) }
                     withContext(Dispatchers.IO) { cache.writeText(texte) }
                     selection.value = s
                     erreurSelection.value = null
@@ -181,13 +212,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                         "Hors connexion : affichage de la dernière sélection reçue."
                     }
                 }
-                val detenus = operations.value.map { it.ticker }.toSet()
-                val nouveaux = coroutineScopeAll(detenus) { t ->
+                val ops = toutesOperations.value
+                val detenus = ops.map { it.ticker }.toSet()
+                val nouveaux = enParallele(detenus) { t ->
                     runCatching { Reseau.cotation(t, "5d") }.getOrNull()
                         ?.let { CoursEntity(t, it.nom, it.devise, it.prix, it.heure) }
                 }
                 if (nouveaux.isNotEmpty()) dao.enregistrerCours(nouveaux)
-                majTaux(operations.value.map { it.devise } + "USD")
+                majTaux(ops.map { it.devise } + "USD")
             } finally {
                 chargement.value = false
             }
@@ -237,9 +269,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         val cle = Format.cle(texte)
-        val locaux = selection.value?.titres.orEmpty().filter { (t, v) ->
-            Format.cle(t).startsWith(cle) || Format.cle(v.nom).contains(cle)
-        }.map { (t, v) -> ResultatRecherche(t, v.nom, libelleMarcheCourt(v.marche), "Action") }.take(10)
+        val locaux = withContext(Dispatchers.Default) {
+            selection.value?.titres.orEmpty().asSequence().filter { (t, v) ->
+                Format.cle(t).startsWith(cle) || Format.cle(v.nom).contains(cle)
+            }.map { (t, v) -> ResultatRecherche(t, v.nom, libelleMarcheCourt(v.marche), "Action") }.take(10).toList()
+        }
         val distants = runCatching { Reseau.rechercher(texte) }
         val tous = (locaux + distants.getOrDefault(emptyList())).distinctBy { it.ticker }
         recherche.update {
@@ -252,36 +286,37 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------- Ordres ----------
 
-    fun acheter(ticker: String, nom: String, devise: String, quantite: Int, prix: Double) {
+    private fun vue(id: Long) = portefeuilles.value.firstOrNull { it.id == id }
+
+    fun acheter(portefeuille: Long, ticker: String, nom: String, devise: String, quantite: Int, prix: Double) {
         viewModelScope.launch {
-            val r = reglages.value ?: return@launch
+            val v = vue(portefeuille) ?: return@launch
             val change = taux(devise) ?: return@launch messages.send(Message("Taux de change indisponible : réessayez"))
-            val liq = bilan(r.capital, operations.value).liquidites
-            val sim = simulerAchat(quantite, prix, change, r.frais, liq)
+            val sim = simulerAchat(quantite, prix, change, v.portefeuille.frais, v.valorisation.liquidites)
             if (!sim.possible) return@launch messages.send(Message(sim.erreur!!))
             val id = dao.ajouter(OperationEntity.depuis(
-                Operation(0, ticker, nom, devise, Sens.ACHAT, quantite, prix, change, sim.fraisEur, System.currentTimeMillis())))
-            messages.send(Message("Achat enregistré : ${Format.quantite(quantite)} × $nom") { dao.supprimer(id) })
+                Operation(0, ticker, nom, devise, Sens.ACHAT, quantite, prix, change, sim.fraisEur, System.currentTimeMillis(), portefeuille)))
+            messages.send(Message("Achat enregistré dans « ${v.portefeuille.nom} » : ${Format.quantite(quantite)} × $nom") { dao.supprimer(id) })
         }
     }
 
-    fun vendre(ticker: String, quantite: Int, prix: Double) {
+    fun vendre(portefeuille: Long, ticker: String, quantite: Int, prix: Double) {
         viewModelScope.launch {
-            val r = reglages.value ?: return@launch
-            val pos = bilan(r.capital, operations.value).positions.firstOrNull { it.ticker == ticker }
+            val v = vue(portefeuille) ?: return@launch
+            val pos = v.ligne(ticker)?.position
             val change = taux(pos?.devise ?: "EUR") ?: return@launch messages.send(Message("Taux de change indisponible : réessayez"))
-            val sim = simulerVente(pos, quantite, prix, change, r.frais)
+            val sim = simulerVente(pos, quantite, prix, change, v.portefeuille.frais)
             if (!sim.possible || pos == null) return@launch messages.send(Message(sim.erreur ?: "Vente impossible"))
             val id = dao.ajouter(OperationEntity.depuis(
-                Operation(0, ticker, pos.nom, pos.devise, Sens.VENTE, quantite, prix, change, sim.fraisEur, System.currentTimeMillis())))
-            messages.send(Message("Vente enregistrée : ${Format.quantite(quantite)} × ${pos.nom}") { dao.supprimer(id) })
+                Operation(0, ticker, pos.nom, pos.devise, Sens.VENTE, quantite, prix, change, sim.fraisEur, System.currentTimeMillis(), portefeuille)))
+            messages.send(Message("Vente enregistrée dans « ${v.portefeuille.nom} » : ${Format.quantite(quantite)} × ${pos.nom}") { dao.supprimer(id) })
         }
     }
 
     fun supprimerOperation(op: Operation) {
         viewModelScope.launch {
-            val r = reglages.value ?: return@launch
-            if (!peutSupprimer(r.capital, operations.value, op.id)) {
+            val v = vue(op.portefeuille) ?: return@launch
+            if (!peutSupprimer(v.portefeuille.capital, v.operations, op.id)) {
                 return@launch messages.send(Message("Impossible : une vente ou un achat plus récent dépend de cette opération"))
             }
             dao.supprimer(op.id)
@@ -289,32 +324,69 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // ---------- Réglages, sauvegarde ----------
+    // ---------- Portefeuilles ----------
 
-    fun modifierReglages(r: Reglages) {
+    fun choisirPortefeuille(id: Long) {
+        viewModelScope.launch { store.enregistrer(reglagesActuels().copy(actif = id)) }
+    }
+
+    fun creerPortefeuille(nom: String, capital: Double, fraisPct: Double, fraisMin: Double) {
         viewModelScope.launch {
-            if (!bilan(r.capital, operations.value).coherent) {
-                return@launch messages.send(Message("Capital trop faible pour les achats déjà faits"))
-            }
-            store.enregistrer(r)
+            val id = dao.enregistrerPortefeuille(PortefeuilleEntity(0, nom.trim(), capital, fraisPct, fraisMin, System.currentTimeMillis()))
+            store.enregistrer(reglagesActuels().copy(actif = id))
+            messages.send(Message("Portefeuille « ${nom.trim()} » créé"))
         }
     }
 
-    fun reinitialiser() {
+    /** Nom, capital et frais ; le capital doit couvrir les achats déjà faits. */
+    fun modifierPortefeuille(p: PortefeuilleEntity) {
         viewModelScope.launch {
-            val avant = dao.operationsListe()
-            dao.vider()
-            messages.send(Message("Portefeuille réinitialisé") { dao.ajouterTout(avant.map { it.copy(id = 0) }) })
+            val ops = vue(p.id)?.operations.orEmpty()
+            if (!bilan(p.capital, ops).coherent) {
+                return@launch messages.send(Message("Capital trop faible pour les achats déjà faits"))
+            }
+            dao.modifierPortefeuille(p.copy(nom = p.nom.trim()))
+            messages.send(Message("Portefeuille « ${p.nom.trim()} » enregistré"))
         }
+    }
+
+    fun reinitialiserPortefeuille(id: Long) {
+        viewModelScope.launch {
+            val v = vue(id) ?: return@launch
+            val avant = dao.operationsDe(id)
+            dao.vider(id)
+            messages.send(Message("« ${v.portefeuille.nom} » réinitialisé") { dao.ajouterTout(avant) })
+        }
+    }
+
+    fun supprimerPortefeuille(id: Long) {
+        viewModelScope.launch {
+            val tous = portefeuilles.value
+            val v = tous.firstOrNull { it.id == id } ?: return@launch
+            if (tous.size <= 1) return@launch messages.send(Message("Impossible de supprimer le dernier portefeuille"))
+            val ops = dao.operationsDe(id)
+            dao.supprimerPortefeuille(id)
+            val r = reglagesActuels()
+            if (r.actif == id) store.enregistrer(r.copy(actif = tous.first { it.id != id }.id))
+            messages.send(Message("Portefeuille « ${v.portefeuille.nom} » supprimé") {
+                dao.restaurer(v.portefeuille, ops)
+                store.enregistrer(reglagesActuels().copy(actif = id))
+            })
+        }
+    }
+
+    // ---------- Réglages, sauvegarde ----------
+
+    fun modifierReglages(r: Reglages) {
+        viewModelScope.launch { store.enregistrer(r) }
     }
 
     fun exporter(uri: Uri) {
         viewModelScope.launch {
-            val r = reglages.value ?: return@launch
+            val ps = portefeuilles.value
             val s = Sauvegarde(
                 exporteLe = Instant.now().toString(),
-                reglages = r,
-                operations = operations.value.map { OperationSauvee.depuis(it) },
+                portefeuilles = ps.map { PortefeuilleSauve.depuis(it.portefeuille, it.operations) },
             )
             val ok = withContext(Dispatchers.IO) {
                 runCatching {
@@ -323,7 +395,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     }
                 }.isSuccess
             }
-            messages.send(Message(if (ok) "Sauvegarde enregistrée (${s.operations.size} opérations)" else "Échec de l'enregistrement"))
+            val n = ps.sumOf { it.operations.size }
+            messages.send(Message(if (ok) "Sauvegarde enregistrée (${ps.size} portefeuille${if (ps.size > 1) "s" else ""}, $n opérations)" else "Échec de l'enregistrement"))
         }
     }
 
@@ -338,10 +411,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             res.onSuccess { s ->
-                val theme = reglages.value?.theme
-                dao.remplacer(s.operations.map { OperationEntity.depuis(it.versOperation()) })
-                store.enregistrer(if (theme != null) s.reglages.copy(theme = theme) else s.reglages)
-                messages.send(Message("Sauvegarde importée : ${s.operations.size} opérations"))
+                dao.remplacerTout(s.portefeuilles.map { p ->
+                    p.versEntite() to p.operations.map { OperationEntity.depuis(it.versOperation()) }
+                })
+                dao.portefeuillesListe().firstOrNull()?.let { store.enregistrer(reglagesActuels().copy(actif = it.id)) }
+                messages.send(Message("Sauvegarde importée : ${s.portefeuilles.size} portefeuille(s), ${s.portefeuilles.sumOf { it.operations.size }} opérations"))
             }.onFailure { messages.send(Message(it.message ?: "Fichier illisible")) }
         }
     }
@@ -350,7 +424,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 }
 
 fun libelleMarcheCourt(m: String) = when (m) {
-    "FR" -> "Paris · CAC 40"
-    "US" -> "New York · S&P 500"
+    "FR" -> "France"
+    "EU" -> "Europe"
+    "US" -> "États-Unis"
     else -> "Ma liste"
 }

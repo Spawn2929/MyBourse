@@ -60,6 +60,18 @@ object Format {
     fun cle(s: String): String = Normalizer.normalize(s, Normalizer.Form.NFD)
         .replace(Regex("\\p{M}"), "").lowercase(FR)
 
+    /** Nombre à modifier dans un champ : « 10000 », « 0,1 ». */
+    fun nombreSimple(v: Double): String =
+        if (v == Math.floor(v) && kotlin.math.abs(v) < 1e15) v.toLong().toString() else v.toString().replace('.', ',')
+
+    /** « 0,1 % (minimum 1,00 €) ». */
+    fun fraisTexte(f: fr.mybourse.app.data.Frais): String =
+        nombreSimple(f.pourcentage) + " % (minimum " + euros(f.minimum) + ")"
+
+    /** Capitalisation en milliards d'euros : « 1,2 Md€ », « 450 M€ ». */
+    fun capi(milliards: Double): String =
+        if (milliards >= 1) nombre(milliards, 1) + " Md€" else nombre(milliards * 1000, 0) + " M€"
+
     /** Saisie d'un nombre (virgule ou point) ; null si invalide. */
     fun lireNombre(s: String): Double? = s.trim().replace(" ", "").replace(" ", "")
         .replace(',', '.').toDoubleOrNull()

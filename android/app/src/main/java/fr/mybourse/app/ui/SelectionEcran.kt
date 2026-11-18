@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.mybourse.app.data.Marches
 import fr.mybourse.app.data.Titre
+import fr.mybourse.app.data.niveauVolatilite
 import fr.mybourse.app.ui.theme.Couleurs
 import java.time.Instant
 import java.time.LocalDate
@@ -44,7 +45,7 @@ fun SelectionEcran(vm: MainViewModel) {
     val chargement by vm.chargement.collectAsState()
     val erreur by vm.erreurSelection.collectAsState()
     val reglages by vm.reglages.collectAsState()
-    val marches = reglages?.marches ?: emptySet()
+    val masques = reglages?.masques ?: emptySet()
 
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
         Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -81,15 +82,18 @@ fun SelectionEcran(vm: MainViewModel) {
                     if (erreur == null) item { EtatVide("Chargement…", "Récupération de la sélection du jour") }
                     return@LazyColumn
                 }
-                for (marche in listOf(Marches.FR, Marches.US)) {
-                    if (marche !in marches) continue
+                for (marche in Marches.zones) {
+                    if (marche in masques) continue
                     val tickers = s.top[marche].orEmpty()
-                    item(key = "titre-$marche") { TitreSection(Marches.libelles.getValue(marche), "Top ${tickers.size}") }
+                    if (tickers.isEmpty()) continue
+                    item(key = "titre-$marche") {
+                        TitreSection(Marches.libelles.getValue(marche), "Top ${tickers.size} · valeurs moyennes et petites")
+                    }
                     items(tickers, key = { "$marche-$it" }) { t ->
                         s.titres[t]?.let { CarteTitre(t, it, rang = tickers.indexOf(t) + 1) { vm.ouvrir(Ecran.Fiche(t)) } }
                     }
                 }
-                if (Marches.LISTE in marches && s.maListe.isNotEmpty()) {
+                if (Marches.LISTE !in masques && s.maListe.isNotEmpty()) {
                     item(key = "titre-liste") {
                         TitreSection("Ma liste", "Titres suivis en plus (modifiable sur GitHub : pipeline/ma_liste.txt)")
                     }
@@ -97,7 +101,7 @@ fun SelectionEcran(vm: MainViewModel) {
                         s.titres[t]?.let { CarteTitre(t, it, rang = null) { vm.ouvrir(Ecran.Fiche(t)) } }
                     }
                 }
-                if (marches.isEmpty()) {
+                if (Marches.libelles.keys.all { it in masques }) {
                     item { EtatVide("Aucun marché affiché", "Choisissez les marchés à afficher dans Réglages.") }
                 }
             }
@@ -130,7 +134,8 @@ private fun CarteTitre(ticker: String, t: Titre, rang: Int?, onClick: () -> Unit
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        ticker + (t.secteur.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""),
+                        ticker + (t.secteur.takeIf { it.isNotBlank() }?.let { " · $it" } ?: "") +
+                            (t.capi?.let { " · " + Format.capi(it) } ?: ""),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
@@ -142,6 +147,14 @@ private fun CarteTitre(ticker: String, t: Titre, rang: Int?, onClick: () -> Unit
                     }
                 }
                 MiniCourbe(t.points.takeLast(63), Modifier.width(88.dp).height(40.dp))
+            }
+            t.volatilite?.let { v ->
+                Text(
+                    "Risque : volatilité ${niveauVolatilite(v)} (±${Format.score(v)} % par an)",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (v >= 50) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
             }
             if (t.raisons.isNotEmpty()) {
                 Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {

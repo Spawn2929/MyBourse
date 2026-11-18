@@ -51,8 +51,21 @@ data class Titre(
     val indicateurs: Map<String, Double?> = emptyMap(),
     @SerialName("notes_technique") val notesTechnique: Map<String, Double> = emptyMap(),
     val historique: List<JsonArray> = emptyList(),
+    /** Capitalisation en milliards d'euros. */
+    val capi: Double? = null,
+    /** Grande valeur (CAC 40, S&P 500 ou plus de 10 Md€) : analysée mais hors des tops. */
+    val grande: Boolean = false,
 ) {
     val points: List<Point> get() = versPoints(historique)
+    val volatilite: Double? get() = indicateurs["volatilite"]
+}
+
+/** Niveau de risque d'après la volatilité annuelle (%). */
+fun niveauVolatilite(v: Double): String = when {
+    v < 20 -> "faible"
+    v < 35 -> "moyenne"
+    v < 50 -> "élevée"
+    else -> "très élevée"
 }
 
 data class Point(val date: LocalDate, val valeur: Double)
@@ -66,9 +79,11 @@ private fun versPoints(brut: List<JsonArray>): List<Point> = brut.mapNotNull { p
 /** Marchés du classement, dans l'ordre d'affichage. */
 object Marches {
     const val FR = "FR"
+    const val EU = "EU"
     const val US = "US"
     const val LISTE = "LISTE"
-    val libelles = mapOf(FR to "France (CAC 40)", US to "États-Unis (S&P 500)", LISTE to "Ma liste")
+    val zones = listOf(FR, EU, US)
+    val libelles = mapOf(FR to "France", EU to "Europe (hors France)", US to "États-Unis", LISTE to "Ma liste")
 }
 
 /** Familles de signaux, dans l'ordre d'affichage. */

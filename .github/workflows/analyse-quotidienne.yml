@@ -1,7 +1,7 @@
 # Analyse quotidienne de MyBourse.
 # Chaque soir de semaine à 22 h 30 UTC (23 h 30 à Paris en hiver, 0 h 30 en été), après la clôture
-# de Paris et de New York : télécharge les cours, calcule les scores, publie selection.json et
-# journal.json dans la branche « data » (que l'appli lit).
+# de Paris et de New York : télécharge les cours, calcule les scores, publie selection.json,
+# journal.json et univers.json (liste des titres, refaite chaque semaine) dans la branche « data ».
 # Se lance aussi à la main : onglet Actions > Analyse quotidienne > Run workflow.
 name: Analyse quotidienne
 
@@ -9,6 +9,11 @@ on:
   schedule:
     - cron: "30 22 * * 1-5"
   workflow_dispatch:
+    inputs:
+      reconstruire_univers:
+        description: "Refaire la liste des titres analysés (sinon : une fois par semaine)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -50,6 +55,8 @@ jobs:
 
       - name: Analyse
         working-directory: pipeline
+        env:
+          MYBOURSE_UNIVERS: ${{ inputs.reconstruire_univers && 'reconstruire' || '' }}
         run: python run.py ../publication
 
       - name: Publication dans la branche data
@@ -60,7 +67,7 @@ jobs:
           # Un seul commit, remplacé chaque soir : la branche ne grossit pas.
           rm -rf .git
           git init -q -b data
-          git add selection.json journal.json
+          git add selection.json journal.json univers.json
           git -c user.name="MyBourse" -c user.email="actions@users.noreply.github.com" \
             commit -q -m "Analyse du $(date -u +%Y-%m-%d)"
           git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data

@@ -1,6 +1,23 @@
 package fr.mybourse.app.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.input.KeyboardType
+import fr.mybourse.app.data.PortefeuilleEntity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -56,24 +73,48 @@ import fr.mybourse.app.ui.theme.Couleurs
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PortefeuilleEcran(vm: MainViewModel) {
-    val valo by vm.valorisation.collectAsState()
+    val actif by vm.actif.collectAsState()
+    val tous by vm.portefeuilles.collectAsState()
     val chargement by vm.chargement.collectAsState()
-    val ops by vm.operations.collectAsState()
+    var selecteur by remember { mutableStateOf(false) }
+    var menu by remember { mutableStateOf(false) }
+    var dialogue by remember { mutableStateOf<DialogueP?>(null) }
+    val a = actif
 
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
-        Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Mon portefeuille", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f))
+        Row(Modifier.fillMaxWidth().padding(start = 8.dp, end = 4.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).clickable { selecteur = true }.padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(a?.portefeuille?.nom ?: "Portefeuille", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                Icon(Icons.Outlined.ArrowDropDown, "Changer de portefeuille")
+            }
             IconButton(onClick = { vm.ouvrir(Ecran.Historique) }) { Icon(Icons.Outlined.History, "Historique des transactions") }
+            Box {
+                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, "Plus d'options") }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(text = { Text("Nom, capital et frais") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) },
+                        onClick = { menu = false; a?.let { dialogue = DialogueP.Modifier(it.portefeuille) } })
+                    DropdownMenuItem(text = { Text("Nouveau portefeuille") }, leadingIcon = { Icon(Icons.Outlined.Add, null) },
+                        onClick = { menu = false; dialogue = DialogueP.Nouveau })
+                    DropdownMenuItem(text = { Text("Réinitialiser") }, leadingIcon = { Icon(Icons.Outlined.RestartAlt, null) },
+                        onClick = { menu = false; a?.let { dialogue = DialogueP.Reinitialiser(it.portefeuille) } })
+                    DropdownMenuItem(text = { Text("Supprimer") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) },
+                        enabled = tous.size > 1,
+                        onClick = { menu = false; a?.let { dialogue = DialogueP.Supprimer(it.portefeuille) } })
+                }
+            }
         }
         PullToRefreshBox(isRefreshing = chargement, onRefresh = vm::rafraichir, modifier = Modifier.fillMaxSize()) {
-            val v = valo
             LazyColumn(
                 Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                if (v == null) return@LazyColumn
+                if (a == null) return@LazyColumn
+                val v = a.valorisation
                 item {
                     Carte {
                         Text("Valeur totale", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -86,9 +127,10 @@ fun PortefeuilleEcran(vm: MainViewModel) {
                         LigneInfo("Capital de départ", Format.euros(v.capital))
                         LigneInfo("Liquidités", Format.euros(v.liquidites))
                         LigneInfo("Titres", Format.euros(v.valeurTitres))
-                        if (ops.any { it.sens == Sens.VENTE }) {
+                        if (a.operations.any { it.sens == Sens.VENTE }) {
                             LigneInfo("Plus-values réalisées (ventes)", Format.eurosSigne(v.plusValuesRealisees), Couleurs.signe(v.plusValuesRealisees))
                         }
+                        LigneInfo("Frais de courtage simulés", Format.fraisTexte(a.portefeuille.frais))
                     }
                 }
                 item {
@@ -112,6 +154,126 @@ fun PortefeuilleEcran(vm: MainViewModel) {
             }
         }
     }
+
+    if (selecteur) {
+        SelecteurPortefeuille(tous, a?.id, choisir = { vm.choisirPortefeuille(it); selecteur = false },
+            nouveau = { selecteur = false; dialogue = DialogueP.Nouveau }, fermer = { selecteur = false })
+    }
+    when (val d = dialogue) {
+        null -> {}
+        DialogueP.Nouveau -> DialoguePortefeuille(
+            null, nomPropose = "Portefeuille ${tous.size + 1}", fraisProposes = a?.portefeuille,
+            fermer = { dialogue = null },
+        ) { nom, capital, pct, min -> vm.creerPortefeuille(nom, capital, pct, min) }
+        is DialogueP.Modifier -> DialoguePortefeuille(d.p, fermer = { dialogue = null }) { nom, capital, pct, min ->
+            vm.modifierPortefeuille(d.p.copy(nom = nom, capital = capital, fraisPct = pct, fraisMin = min))
+        }
+        is DialogueP.Reinitialiser -> AlertDialog(
+            onDismissRequest = { dialogue = null },
+            title = { Text("Réinitialiser « ${d.p.nom} » ?") },
+            text = { Text("Toutes ses transactions seront effacées ; il repartira de son capital de départ. Vous pourrez annuler pendant 5 secondes.") },
+            confirmButton = { TextButton(onClick = { vm.reinitialiserPortefeuille(d.p.id); dialogue = null }) { Text("Réinitialiser") } },
+            dismissButton = { TextButton(onClick = { dialogue = null }) { Text("Annuler") } },
+        )
+        is DialogueP.Supprimer -> AlertDialog(
+            onDismissRequest = { dialogue = null },
+            title = { Text("Supprimer « ${d.p.nom} » ?") },
+            text = { Text("Le portefeuille et toutes ses transactions seront supprimés. Vous pourrez annuler pendant 5 secondes.") },
+            confirmButton = { TextButton(onClick = { vm.supprimerPortefeuille(d.p.id); dialogue = null }) { Text("Supprimer") } },
+            dismissButton = { TextButton(onClick = { dialogue = null }) { Text("Annuler") } },
+        )
+    }
+}
+
+private sealed interface DialogueP {
+    data object Nouveau : DialogueP
+    data class Modifier(val p: PortefeuilleEntity) : DialogueP
+    data class Reinitialiser(val p: PortefeuilleEntity) : DialogueP
+    data class Supprimer(val p: PortefeuilleEntity) : DialogueP
+}
+
+/** Liste des portefeuilles avec leur valeur ; toucher pour l'afficher. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SelecteurPortefeuille(tous: List<VuePortefeuille>, actif: Long?, choisir: (Long) -> Unit, nouveau: () -> Unit, fermer: () -> Unit) {
+    ModalBottomSheet(onDismissRequest = fermer, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(Modifier.navigationBarsPadding().padding(bottom = 12.dp)) {
+            Text("Mes portefeuilles", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
+            for (v in tous) {
+                val valo = v.valorisation
+                ListItem(
+                    headlineContent = { Text(v.portefeuille.nom, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    supportingContent = {
+                        Text(Format.eurosSigne(valo.plusValueEur) + " (" + Format.pct(valo.plusValuePct) + ") · " +
+                            "${valo.lignes.size} position${if (valo.lignes.size > 1) "s" else ""}",
+                            color = Couleurs.signe(valo.plusValueEur))
+                    },
+                    leadingContent = {
+                        if (v.id == actif) Icon(Icons.Outlined.Check, "Affiché", tint = MaterialTheme.colorScheme.primary)
+                        else Spacer(Modifier.width(24.dp))
+                    },
+                    trailingContent = { Text(Format.euros(valo.total), fontWeight = FontWeight.SemiBold) },
+                    modifier = Modifier.clickable { choisir(v.id) },
+                )
+            }
+            ListItem(
+                headlineContent = { Text("Nouveau portefeuille", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium) },
+                leadingContent = { Icon(Icons.Outlined.Add, null, tint = MaterialTheme.colorScheme.primary) },
+                modifier = Modifier.clickable(onClick = nouveau),
+            )
+        }
+    }
+}
+
+/** Création ou modification d'un portefeuille : nom, capital de départ et frais de courtage simulés. */
+@Composable
+private fun DialoguePortefeuille(
+    initial: PortefeuilleEntity?,
+    nomPropose: String = "",
+    fraisProposes: PortefeuilleEntity? = null,
+    fermer: () -> Unit,
+    valider: (String, Double, Double, Double) -> Unit,
+) {
+    var nom by remember { mutableStateOf(initial?.nom ?: nomPropose) }
+    var capital by remember { mutableStateOf(Format.nombreSimple(initial?.capital ?: 10_000.0)) }
+    var pct by remember { mutableStateOf(Format.nombreSimple(initial?.fraisPct ?: fraisProposes?.fraisPct ?: 0.1)) }
+    var min by remember { mutableStateOf(Format.nombreSimple(initial?.fraisMin ?: fraisProposes?.fraisMin ?: 1.0)) }
+    val c = Format.lireNombre(capital)
+    val p = Format.lireNombre(pct)
+    val m = Format.lireNombre(min)
+    val ok = nom.isNotBlank() && c != null && c > 0 && p != null && p < 100 && m != null
+    fun filtre(s: String) = s.filter { it.isDigit() || it == ',' || it == '.' || it == ' ' }
+    AlertDialog(
+        onDismissRequest = fermer,
+        title = { Text(if (initial == null) "Nouveau portefeuille" else "Portefeuille") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(nom, { nom = it.take(40) }, label = { Text("Nom") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(capital, { capital = filtre(it) }, label = { Text("Capital de départ (€)") }, singleLine = true,
+                    isError = c == null || c <= 0, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth())
+                Text("Frais de courtage simulés : pourcentage du montant, avec un minimum par ordre.",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(pct, { pct = filtre(it) }, label = { Text("Frais (%)") }, singleLine = true, isError = p == null,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.weight(1f))
+                    OutlinedTextField(min, { min = filtre(it) }, label = { Text("Minimum (€)") }, singleLine = true, isError = m == null,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.weight(1f))
+                }
+                if (initial != null) {
+                    Text("Les frais déjà payés ne changent pas ; les nouveaux s'appliquent aux prochains ordres.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = ok, onClick = { valider(nom, c!!, p!!, m!!); fermer() }) {
+                Text(if (initial == null) "Créer" else "Enregistrer")
+            }
+        },
+        dismissButton = { TextButton(onClick = fermer) { Text("Annuler") } },
+    )
 }
 
 @Composable
@@ -149,11 +311,12 @@ private fun CarteLigne(l: Ligne, onClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoriqueEcran(vm: MainViewModel) {
-    val ops by vm.operations.collectAsState()
+    val actif by vm.actif.collectAsState()
+    val ops = actif?.operations.orEmpty()
     var aSupprimer by remember { mutableStateOf<Operation?>(null) }
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("Historique des transactions") },
+            title = { Text("Historique · " + (actif?.portefeuille?.nom ?: ""), maxLines = 1, overflow = TextOverflow.Ellipsis) },
             navigationIcon = { IconButton(onClick = { vm.retour() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour") } },
         )
         if (ops.isEmpty()) {

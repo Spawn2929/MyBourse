@@ -1,6 +1,8 @@
 package fr.mybourse.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,6 +36,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -52,6 +55,7 @@ import fr.mybourse.app.data.Sens
 import fr.mybourse.app.data.quantitePourMontant
 import fr.mybourse.app.data.simulerAchat
 import fr.mybourse.app.data.simulerVente
+import fr.mybourse.app.data.niveauVolatilite
 import fr.mybourse.app.ui.theme.Couleurs
 import java.time.LocalDate
 
@@ -63,7 +67,8 @@ fun FicheEcran(vm: MainViewModel, ticker: String) {
     val fiches by vm.fiches.collectAsState()
     val selection by vm.selection.collectAsState()
     val cours by vm.cours.collectAsState()
-    val valo by vm.valorisation.collectAsState()
+    val portefeuilles by vm.portefeuilles.collectAsState()
+    val actif by vm.actif.collectAsState()
     val etat = fiches[ticker] ?: FicheEtat()
     val titre = selection?.titres?.get(ticker)
     val cot = etat.cotation
@@ -71,7 +76,8 @@ fun FicheEcran(vm: MainViewModel, ticker: String) {
     val nom = cot?.nom ?: titre?.nom ?: connu?.nom ?: ticker
     val devise = connu?.devise ?: cot?.devise ?: titre?.devise ?: "EUR"
     val taux = vm.taux(devise, cours, selection)
-    val ligne = valo?.lignes?.firstOrNull { it.position.ticker == ticker }
+    // Portefeuilles qui détiennent ce titre
+    val detenteurs = portefeuilles.mapNotNull { v -> v.ligne(ticker)?.let { v to it } }
     var periode by rememberSaveable { mutableStateOf(6L) }
     var ordre by remember { mutableStateOf<Sens?>(null) }
 
@@ -127,7 +133,9 @@ fun FicheEcran(vm: MainViewModel, ticker: String) {
             }
 
             // Position détenue
-            if (ligne != null) CartePosition(ligne)
+            for ((v, l) in detenteurs) {
+                CartePosition(l, if (portefeuilles.size > 1) "Ma position · " + v.portefeuille.nom else "Ma position")
+            }
 
             // Analyse
             if (titre != null) {
@@ -136,8 +144,12 @@ fun FicheEcran(vm: MainViewModel, ticker: String) {
                         PastilleScore(titre.score, 56.dp)
                         Column(Modifier.padding(start = 12.dp)) {
                             Text("Score global", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                            Text(libelleMarcheCourt(titre.marche), style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                libelleMarcheCourt(titre.marche) +
+                                    (if (titre.grande) " · grande valeur, hors des tops" else "") +
+                                    (titre.capi?.let { " · " + Format.capi(it) } ?: ""),
+                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                     Spacer(Modifier.height(8.dp))
@@ -163,6 +175,7 @@ fun FicheEcran(vm: MainViewModel, ticker: String) {
                     for ((cle, lib) in listOf("perf_1m" to "Sur 1 mois", "perf_3m" to "Sur 3 mois", "perf_6m" to "Sur 6 mois", "perf_1a" to "Sur 1 an")) {
                         i[cle]?.let { LigneInfo(lib, Format.pct(it), Couleurs.signe(it)) }
                     }
+                    i["volatilite"]?.let { LigneInfo("Volatilité (1 an)", "±" + Format.score(it) + " % · " + niveauVolatilite(it)) }
                     i["rsi"]?.let { LigneInfo("RSI (14 jours)", Format.score(it)) }
                     i["mm50"]?.let { LigneInfo("Moyenne 50 jours", Format.prix(it, titre.devise)) }
                     i["mm200"]?.let { LigneInfo("Moyenne 200 jours", Format.prix(it, titre.devise)) }
@@ -171,8 +184,9 @@ fun FicheEcran(vm: MainViewModel, ticker: String) {
                 Carte {
                     Text("Titre non analysé", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text(
-                        "Ce titre ne fait pas partie du CAC 40, du S&P 500 ni de « Ma liste » : vous pouvez l'acheter, " +
-                            "mais il n'a pas de score. Pour qu'il soit analysé chaque soir, ajoutez « $ticker » au fichier " +
+                        "Ce titre ne fait pas partie des actions analysées chaque soir (France, Europe et États-Unis, " +
+                            "plus de 200 M€ de capitalisation, assez échangées) ni de « Ma liste » : vous pouvez l'acheter, " +
+                            "mais il n'a pas de score. Pour qu'il soit analysé, ajoutez « $ticker » au fichier " +
                             "pipeline/ma_liste.txt sur GitHub.",
                         style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp),
                     )
@@ -186,7 +200,7 @@ fun FicheEcran(vm: MainViewModel, ticker: String) {
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (ligne != null) {
+            if (detenteurs.isNotEmpty()) {
                 OutlinedButton(onClick = { ordre = Sens.VENTE }, enabled = connu != null, modifier = Modifier.weight(1f).height(52.dp)) {
                     Text("Vendre")
                 }
@@ -199,15 +213,16 @@ fun FicheEcran(vm: MainViewModel, ticker: String) {
 
     val o = ordre
     if (o != null && connu != null) {
-        OrdreFeuille(vm, o, ticker, nom, devise, connu.prix, taux, ligne) { ordre = null }
+        val choix = if (o == Sens.VENTE) detenteurs.map { it.first } else portefeuilles
+        if (choix.isNotEmpty()) OrdreFeuille(vm, o, ticker, nom, devise, connu.prix, taux, choix, actif?.id) { ordre = null }
     }
 }
 
 @Composable
-fun CartePosition(l: Ligne) {
+fun CartePosition(l: Ligne, titre: String = "Ma position") {
     val p = l.position
     Carte {
-        Text("Ma position", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(titre, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         LigneInfo("Quantité", Format.quantite(p.quantite))
         LigneInfo("Prix de revient (frais compris)", Format.euros(p.pruEur) + " / titre")
         LigneInfo("Montant investi", Format.euros(p.coutEur))
@@ -219,17 +234,18 @@ fun CartePosition(l: Ligne) {
     }
 }
 
-/** Feuille d'achat ou de vente : saisie, calcul des frais et du total avant validation. */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Feuille d'achat ou de vente : choix du portefeuille, saisie, calcul des frais et du total avant validation. */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun OrdreFeuille(
     vm: MainViewModel, sens: Sens, ticker: String, nom: String, devise: String, prix: Double, taux: Double?,
-    ligne: Ligne?, fermer: () -> Unit,
+    choix: List<VuePortefeuille>, defaut: Long?, fermer: () -> Unit,
 ) {
-    val reglages by vm.reglages.collectAsState()
-    val valo by vm.valorisation.collectAsState()
-    val r = reglages ?: return
-    val liquidites = valo?.liquidites ?: 0.0
+    var pid by rememberSaveable { mutableLongStateOf(choix.firstOrNull { it.id == defaut }?.id ?: choix.first().id) }
+    val vue = choix.firstOrNull { it.id == pid } ?: choix.first()
+    val ligne = vue.ligne(ticker)
+    val frais = vue.portefeuille.frais
+    val liquidites = vue.valorisation.liquidites
     var enMontant by rememberSaveable { mutableStateOf(sens == Sens.ACHAT) }
     var saisie by rememberSaveable { mutableStateOf("") }
     val etat = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -237,14 +253,14 @@ private fun OrdreFeuille(
     val valeur = Format.lireNombre(saisie)
     val quantite = when {
         valeur == null -> 0
-        enMontant && taux != null -> quantitePourMontant(valeur, prix, taux, r.frais)
+        enMontant && taux != null -> quantitePourMontant(valeur, prix, taux, frais)
         enMontant -> 0
         else -> valeur.toInt().takeIf { it.toDouble() == valeur } ?: -1
     }
     val sim = when {
         taux == null -> null
-        sens == Sens.ACHAT -> simulerAchat(quantite, prix, taux, r.frais, liquidites)
-        else -> simulerVente(ligne?.position, quantite, prix, taux, r.frais)
+        sens == Sens.ACHAT -> simulerAchat(quantite, prix, taux, frais, liquidites)
+        else -> simulerVente(ligne?.position, quantite, prix, taux, frais)
     }
 
     ModalBottomSheet(onDismissRequest = fermer, sheetState = etat) {
@@ -257,6 +273,14 @@ private fun OrdreFeuille(
                     (if (devise != "EUR" && taux != null) " (≈ " + Format.euros(prix * taux) + ")" else ""),
                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (choix.size > 1) {
+                Text("Dans quel portefeuille ?", style = MaterialTheme.typography.titleSmall)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    for (v in choix) {
+                        FilterChip(selected = v.id == pid, onClick = { pid = v.id }, label = { Text(v.portefeuille.nom) })
+                    }
+                }
+            }
             if (sens == Sens.ACHAT) {
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                     SegmentedButton(enMontant, { enMontant = true; saisie = "" }, SegmentedButtonDefaults.itemShape(0, 2)) { Text("Montant en €") }
@@ -298,7 +322,7 @@ private fun OrdreFeuille(
             sim?.erreur?.takeIf { quantite > 0 }?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             Button(
                 onClick = {
-                    if (sens == Sens.ACHAT) vm.acheter(ticker, nom, devise, quantite, prix) else vm.vendre(ticker, quantite, prix)
+                    if (sens == Sens.ACHAT) vm.acheter(pid, ticker, nom, devise, quantite, prix) else vm.vendre(pid, ticker, quantite, prix)
                     fermer()
                 },
                 enabled = sim?.possible == true && quantite > 0,

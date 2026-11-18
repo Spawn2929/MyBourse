@@ -65,8 +65,10 @@ def devise(ticker: str) -> str:
         return "EUR"
     if ticker.endswith(".L"):
         return "GBp"
-    if ticker.endswith(".SW"):
-        return "CHF"
+    autres = {".SW": "CHF", ".ST": "SEK", ".CO": "DKK", ".OL": "NOK"}
+    for suffixe, dev in autres.items():
+        if ticker.endswith(suffixe):
+            return dev
     if "." not in ticker:
         return "USD"
     try:
