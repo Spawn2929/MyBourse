@@ -37,7 +37,8 @@ def _arrondi(v):
 
 
 def analyser(titres: dict[str, dict], cours: dict[str, pd.DataFrame], ponderations: dict,
-             top_par_marche: dict[str, int]) -> tuple[dict, dict[str, list[str]]]:
+             top_par_marche: dict[str, int],
+             volatilite_max: float | None = None) -> tuple[dict, dict[str, list[str]]]:
     """titres : ticker -> {nom, marche, secteur, devise, capi_eur?, grande?}.
 
     Renvoie (fiches par titre, top par marché). Les rangs de performance sont calculés au sein
@@ -88,12 +89,19 @@ def analyser(titres: dict[str, dict], cours: dict[str, pd.DataFrame], ponderatio
 
     top = {}
     for marche, n in top_par_marche.items():
-        # Les grandes valeurs (CAC 40, S&P 500, plus de 10 Md€) sont exclues des tops
+        # Exclues des tops : les grandes valeurs (CAC 40, S&P 500, plus de 10 Md€)
+        # et les titres trop agités (volatilité annuelle au-delà du seuil)
         membres = [t for t in groupes.get(marche, [])
-                   if fiches[t]["score"] is not None and not titres[t].get("grande")]
+                   if fiches[t]["score"] is not None and not titres[t].get("grande")
+                   and not trop_volatil(fiches[t], volatilite_max)]
         membres.sort(key=lambda t: (-fiches[t]["score"], t))
         top[marche] = membres[:n]
     return fiches, top
+
+
+def trop_volatil(fiche: dict, volatilite_max: float | None) -> bool:
+    v = fiche["indicateurs"].get("volatilite")
+    return volatilite_max is not None and v is not None and v > volatilite_max
 
 
 def construire_json(fiches: dict, top: dict, cours: dict[str, pd.DataFrame], indices: dict[str, str],

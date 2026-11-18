@@ -95,7 +95,8 @@ def main(sortie: Path) -> None:
                                 taille_lot=tl["taille_lot"], pause=tl["pause_secondes"])
     eurusd = round(float(cours["EURUSD=X"]["Close"].iloc[-1]), 5) if "EURUSD=X" in cours else None
 
-    fiches, top = analyse.analyser(titres, cours, cfg["ponderations"], cfg["top_par_marche"])
+    fiches, top = analyse.analyser(titres, cours, cfg["ponderations"], cfg["top_par_marche"],
+                                   cfg["filtres"].get("volatilite_max_top"))
     if not any(top.values()):
         raise SystemExit("Aucun titre classé : publication annulée pour ne pas écraser la veille.")
     doc = analyse.construire_json(fiches, top, cours, indices, cfg["ponderations"], eurusd, liste)

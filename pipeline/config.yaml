@@ -30,6 +30,7 @@ filtres:
   echanges_min_eur_par_jour: 500000      # 500 000 € échangés par jour en moyenne (3 mois)
   cours_min: 1                           # 1 € ou 1 $ minimum
   grande_valeur_eur: 10000000000         # au-delà de 10 Md€ : grande valeur, hors des tops
+  volatilite_max_top: 80                 # au-delà de ±80 % par an : trop agité, hors des tops (reste achetable)
 
 # Grandes valeurs exclues des tops (mais analysées et achetables)
 grands_indices:

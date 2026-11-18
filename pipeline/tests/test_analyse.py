@@ -145,6 +145,18 @@ def test_grandes_valeurs_exclues_du_top():
     assert fiches["GEANT"]["grande"] is True and fiches["GEANT"]["score"] is not None
 
 
+def test_titres_trop_agites_exclus_du_top():
+    agite = serie(100 * np.exp(0.003 * np.arange(300)) * (1 + 0.08 * np.sin(np.arange(300) * 1.7)))
+    titres = {"CALME": {"nom": "C", "marche": "US", "devise": "USD"},
+              "FUSEE": {"nom": "F", "marche": "US", "devise": "USD"}}
+    cours = {"CALME": hausse(pente=0.001), "FUSEE": agite}
+    fiches, top = analyse.analyser(titres, cours, {"technique": 100}, {"US": 5}, volatilite_max=80)
+    assert fiches["FUSEE"]["indicateurs"]["volatilite"] > 80
+    assert top["US"] == ["CALME"]
+    _, top_sans_seuil = analyse.analyser(titres, cours, {"technique": 100}, {"US": 5})
+    assert "FUSEE" in top_sans_seuil["US"]
+
+
 def test_volatilite():
     calme = serie(100 + np.arange(300) * 0.01)
     agite = serie(100 * (1 + 0.05 * np.sin(np.arange(300) * 1.7)))
