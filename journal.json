@@ -1,0 +1,604 @@
+[
+ {
+  "date": "2026-11-18",
+  "top": {
+   "FR": [
+    {
+     "ticker": "VU.PA",
+     "score": 94.5,
+     "cours": 151.8
+    },
+    {
+     "ticker": "SW.PA",
+     "score": 92.6,
+     "cours": 61.1
+    },
+    {
+     "ticker": "DEC.PA",
+     "score": 90.7,
+     "cours": 27.02
+    },
+    {
+     "ticker": "AF.PA",
+     "score": 87.5,
+     "cours": 14.545
+    },
+    {
+     "ticker": "RUI.PA",
+     "score": 87.5,
+     "cours": 36.76
+    }
+   ],
+   "EU": [
+    {
+     "ticker": "WWIB.OL",
+     "score": 98.3,
+     "cours": 891.0
+    },
+    {
+     "ticker": "WWI.OL",
+     "score": 98.0,
+     "cours": 949.0
+    },
+    {
+     "ticker": "CY4.MI",
+     "score": 97.4,
+     "cours": 11.26
+    },
+    {
+     "ticker": "ADN1.DE",
+     "score": 97.1,
+     "cours": 76.7
+    },
+    {
+     "ticker": "HWG.L",
+     "score": 96.3,
+     "cours": 197.6
+    }
+   ],
+   "US": [
+    {
+     "ticker": "RSKD",
+     "score": 99.6,
+     "cours": 9.79
+    },
+    {
+     "ticker": "AZTA",
+     "score": 99.5,
+     "cours": 48.69
+    },
+    {
+     "ticker": "SBC",
+     "score": 99.5,
+     "cours": 6.27
+    },
+    {
+     "ticker": "PUBM",
+     "score": 99.0,
+     "cours": 20.67
+    },
+    {
+     "ticker": "FENC",
+     "score": 96.4,
+     "cours": 13.33
+    }
+   ]
+  }
+ },
+ {
+  "date": "2026-11-19",
+  "top": {
+   "FR": [
+    {
+     "ticker": "DEC.PA",
+     "score": 91.3,
+     "cours": 27.22
+    },
+    {
+     "ticker": "RUI.PA",
+     "score": 88.1,
+     "cours": 36.26
+    },
+    {
+     "ticker": "ITP.PA",
+     "score": 86.0,
+     "cours": 36.16
+    },
+    {
+     "ticker": "ODET.PA",
+     "score": 85.5,
+     "cours": 1020.0
+    },
+    {
+     "ticker": "SCR.PA",
+     "score": 83.7,
+     "cours": 35.02
+    }
+   ],
+   "EU": [
+    {
+     "ticker": "CY4.MI",
+     "score": 98.5,
+     "cours": 11.9
+    },
+    {
+     "ticker": "WWI.OL",
+     "score": 97.8,
+     "cours": 956.0
+    },
+    {
+     "ticker": "ADN1.DE",
+     "score": 97.7,
+     "cours": 76.5
+    },
+    {
+     "ticker": "HNSA.ST",
+     "score": 97.0,
+     "cours": 47.88
+    },
+    {
+     "ticker": "HWG.L",
+     "score": 96.5,
+     "cours": 197.6
+    }
+   ],
+   "US": [
+    {
+     "ticker": "RSKD",
+     "score": 99.6,
+     "cours": 9.79
+    },
+    {
+     "ticker": "SBC",
+     "score": 99.5,
+     "cours": 6.27
+    },
+    {
+     "ticker": "PUBM",
+     "score": 99.2,
+     "cours": 20.67
+    },
+    {
+     "ticker": "WWW",
+     "score": 98.0,
+     "cours": 24.99
+    },
+    {
+     "ticker": "FENC",
+     "score": 96.7,
+     "cours": 13.33
+    }
+   ]
+  }
+ },
+ {
+  "date": "2026-11-20",
+  "top": {
+   "FR": [
+    {
+     "ticker": "DEC.PA",
+     "score": 91.2,
+     "cours": 27.42
+    },
+    {
+     "ticker": "VU.PA",
+     "score": 90.3,
+     "cours": 146.0
+    },
+    {
+     "ticker": "AF.PA",
+     "score": 87.1,
+     "cours": 14.695
+    },
+    {
+     "ticker": "ITP.PA",
+     "score": 86.0,
+     "cours": 36.46
+    },
+    {
+     "ticker": "RUI.PA",
+     "score": 85.1,
+     "cours": 36.5
+    }
+   ],
+   "EU": [
+    {
+     "ticker": "CY4.MI",
+     "score": 98.9,
+     "cours": 12.38
+    },
+    {
+     "ticker": "WWIB.OL",
+     "score": 98.0,
+     "cours": 903.0
+    },
+    {
+     "ticker": "WWI.OL",
+     "score": 97.3,
+     "cours": 935.0
+    },
+    {
+     "ticker": "PCZ.DE",
+     "score": 96.4,
+     "cours": 9.81
+    },
+    {
+     "ticker": "YUBICO.ST",
+     "score": 96.0,
+     "cours": 184.0
+    }
+   ],
+   "US": [
+    {
+     "ticker": "BILL",
+     "score": 99.0,
+     "cours": 61.44
+    },
+    {
+     "ticker": "CTKB",
+     "score": 98.8,
+     "cours": 6.12
+    },
+    {
+     "ticker": "FENC",
+     "score": 96.9,
+     "cours": 13.09
+    },
+    {
+     "ticker": "POWW",
+     "score": 96.2,
+     "cours": 2.58
+    },
+    {
+     "ticker": "AZTA",
+     "score": 95.7,
+     "cours": 44.8
+    }
+   ]
+  }
+ },
+ {
+  "date": "2026-11-24",
+  "top": {
+   "FR": [
+    {
+     "ticker": "ALVDM.PA",
+     "score": 91.4,
+     "cours": 180.0
+    },
+    {
+     "ticker": "DEC.PA",
+     "score": 91.2,
+     "cours": 27.68
+    },
+    {
+     "ticker": "AF.PA",
+     "score": 86.9,
+     "cours": 14.815
+    },
+    {
+     "ticker": "ITP.PA",
+     "score": 86.0,
+     "cours": 36.92
+    },
+    {
+     "ticker": "VU.PA",
+     "score": 85.0,
+     "cours": 150.7
+    }
+   ],
+   "EU": [
+    {
+     "ticker": "CY4.MI",
+     "score": 98.8,
+     "cours": 12.46
+    },
+    {
+     "ticker": "WWIB.OL",
+     "score": 98.0,
+     "cours": 892.0
+    },
+    {
+     "ticker": "CTEC.L",
+     "score": 97.4,
+     "cours": 269.0
+    },
+    {
+     "ticker": "WWI.OL",
+     "score": 97.0,
+     "cours": 924.0
+    },
+    {
+     "ticker": "YUBICO.ST",
+     "score": 96.0,
+     "cours": 188.8
+    }
+   ],
+   "US": [
+    {
+     "ticker": "RSKD",
+     "score": 99.8,
+     "cours": 10.44
+    },
+    {
+     "ticker": "KNSA",
+     "score": 99.2,
+     "cours": 102.72
+    },
+    {
+     "ticker": "CTKB",
+     "score": 99.0,
+     "cours": 6.59
+    },
+    {
+     "ticker": "TGTX",
+     "score": 98.8,
+     "cours": 70.13
+    },
+    {
+     "ticker": "CBLL",
+     "score": 98.4,
+     "cours": 29.94
+    }
+   ]
+  }
+ },
+ {
+  "date": "2026-11-25",
+  "top": {
+   "FR": [
+    {
+     "ticker": "ALVDM.PA",
+     "score": 94.4,
+     "cours": 180.0
+    },
+    {
+     "ticker": "AF.PA",
+     "score": 94.2,
+     "cours": 14.52
+    },
+    {
+     "ticker": "DEC.PA",
+     "score": 91.0,
+     "cours": 27.66
+    },
+    {
+     "ticker": "ITP.PA",
+     "score": 86.0,
+     "cours": 36.84
+    },
+    {
+     "ticker": "VETO.PA",
+     "score": 85.0,
+     "cours": 89.9
+    }
+   ],
+   "EU": [
+    {
+     "ticker": "CY4.MI",
+     "score": 97.7,
+     "cours": 11.72
+    },
+    {
+     "ticker": "YUBICO.ST",
+     "score": 96.0,
+     "cours": 192.2
+    },
+    {
+     "ticker": "BME.L",
+     "score": 95.8,
+     "cours": 346.0
+    },
+    {
+     "ticker": "NOBA.ST",
+     "score": 95.7,
+     "cours": 98.8
+    },
+    {
+     "ticker": "C5H.IR",
+     "score": 94.9,
+     "cours": 2.815
+    }
+   ],
+   "US": [
+    {
+     "ticker": "RSKD",
+     "score": 99.7,
+     "cours": 10.16
+    },
+    {
+     "ticker": "CTKB",
+     "score": 98.7,
+     "cours": 6.4
+    },
+    {
+     "ticker": "TGTX",
+     "score": 98.7,
+     "cours": 68.37
+    },
+    {
+     "ticker": "CBLL",
+     "score": 98.5,
+     "cours": 29.44
+    },
+    {
+     "ticker": "POWW",
+     "score": 96.6,
+     "cours": 2.73
+    }
+   ]
+  }
+ },
+ {
+  "date": "2026-11-26",
+  "top": {
+   "FR": [
+    {
+     "ticker": "ALVDM.PA",
+     "score": 94.8,
+     "cours": 180.0
+    },
+    {
+     "ticker": "AF.PA",
+     "score": 93.5,
+     "cours": 14.265
+    },
+    {
+     "ticker": "RCO.PA",
+     "score": 92.3,
+     "cours": 58.15
+    },
+    {
+     "ticker": "ITP.PA",
+     "score": 89.9,
+     "cours": 37.0
+    },
+    {
+     "ticker": "VETO.PA",
+     "score": 88.4,
+     "cours": 87.9
+    }
+   ],
+   "EU": [
+    {
+     "ticker": "ADN1.DE",
+     "score": 98.4,
+     "cours": 82.4
+    },
+    {
+     "ticker": "BME.L",
+     "score": 95.8,
+     "cours": 343.8
+    },
+    {
+     "ticker": "MORLD.OL",
+     "score": 94.5,
+     "cours": 27.95
+    },
+    {
+     "ticker": "ASC.L",
+     "score": 94.4,
+     "cours": 480.5
+    },
+    {
+     "ticker": "C5H.IR",
+     "score": 94.2,
+     "cours": 2.795
+    }
+   ],
+   "US": [
+    {
+     "ticker": "RSKD",
+     "score": 99.7,
+     "cours": 10.16
+    },
+    {
+     "ticker": "CTKB",
+     "score": 98.7,
+     "cours": 6.4
+    },
+    {
+     "ticker": "TGTX",
+     "score": 98.7,
+     "cours": 68.37
+    },
+    {
+     "ticker": "CBLL",
+     "score": 98.5,
+     "cours": 29.44
+    },
+    {
+     "ticker": "POWW",
+     "score": 96.6,
+     "cours": 2.73
+    }
+   ]
+  }
+ },
+ {
+  "date": "2026-11-27",
+  "top": {
+   "FR": [
+    {
+     "ticker": "ALVDM.PA",
+     "score": 93.4,
+     "cours": 180.0
+    },
+    {
+     "ticker": "RCO.PA",
+     "score": 92.2,
+     "cours": 57.45
+    },
+    {
+     "ticker": "MF.PA",
+     "score": 90.8,
+     "cours": 89.0
+    },
+    {
+     "ticker": "VU.PA",
+     "score": 90.3,
+     "cours": 158.5
+    },
+    {
+     "ticker": "SCR.PA",
+     "score": 89.6,
+     "cours": 36.1
+    }
+   ],
+   "EU": [
+    {
+     "ticker": "ADN1.DE",
+     "score": 98.1,
+     "cours": 82.0
+    },
+    {
+     "ticker": "BME.L",
+     "score": 95.8,
+     "cours": 351.4
+    },
+    {
+     "ticker": "C5H.IR",
+     "score": 95.5,
+     "cours": 2.895
+    },
+    {
+     "ticker": "ASC.L",
+     "score": 94.5,
+     "cours": 487.0
+    },
+    {
+     "ticker": "CNE.L",
+     "score": 93.6,
+     "cours": 435.0
+    }
+   ],
+   "US": [
+    {
+     "ticker": "RSKD",
+     "score": 99.7,
+     "cours": 10.48
+    },
+    {
+     "ticker": "KSS",
+     "score": 99.6,
+     "cours": 27.77
+    },
+    {
+     "ticker": "DCBO",
+     "score": 99.3,
+     "cours": 32.86
+    },
+    {
+     "ticker": "TGTX",
+     "score": 98.9,
+     "cours": 69.46
+    },
+    {
+     "ticker": "AVPT",
+     "score": 98.5,
+     "cours": 17.73
+    }
+   ]
+  }
+ }
+]

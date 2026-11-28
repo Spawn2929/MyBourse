@@ -1,0 +1,506 @@
+{
+ "capital": 10000,
+ "frais_pct": 0.1,
+ "frais_min": 1,
+ "debut": "2026-11-18",
+ "liquidites": 242.82,
+ "positions": {
+  "DEC.PA": {
+   "nom": "JCDecaux SE",
+   "devise": "EUR",
+   "quantite": 24,
+   "prix": 28.0,
+   "change": 1.0
+  },
+  "AF.PA": {
+   "nom": "Air France-KLM SA",
+   "devise": "EUR",
+   "quantite": 45,
+   "prix": 14.23,
+   "change": 1.0
+  },
+  "WWIB.OL": {
+   "nom": "Wilh. Wilhelmsen Holding ASA",
+   "devise": "NOK",
+   "quantite": 7,
+   "prix": 865.0,
+   "change": 0.09343986517831954
+  },
+  "WWI.OL": {
+   "nom": "Wilh. Wilhelmsen Holding ASA",
+   "devise": "NOK",
+   "quantite": 7,
+   "prix": 893.0,
+   "change": 0.09343986517831954
+  },
+  "CY4.MI": {
+   "nom": "Cy4gate S.p.A.",
+   "devise": "EUR",
+   "quantite": 59,
+   "prix": 11.34,
+   "change": 1.0
+  },
+  "HWG.L": {
+   "nom": "Harworth Group plc",
+   "devise": "GBp",
+   "quantite": 281,
+   "prix": 197.6,
+   "change": 0.01193702041661707
+  },
+  "RSKD": {
+   "nom": "Riskified Ltd.",
+   "devise": "USD",
+   "quantite": 74,
+   "prix": 10.48,
+   "change": 0.9114000406341094
+  },
+  "ITP.PA": {
+   "nom": "Interparfums SA",
+   "devise": "EUR",
+   "quantite": 16,
+   "prix": 36.58,
+   "change": 1.0
+  },
+  "ALVDM.PA": {
+   "nom": "Voyageurs du Monde SA",
+   "devise": "EUR",
+   "quantite": 3,
+   "prix": 180.0,
+   "change": 1.0
+  },
+  "VETO.PA": {
+   "nom": "Vetoquinol SA",
+   "devise": "EUR",
+   "quantite": 6,
+   "prix": 89.6,
+   "change": 1.0
+  },
+  "YUBICO.ST": {
+   "nom": "Yubico AB (publ)",
+   "devise": "SEK",
+   "quantite": 37,
+   "prix": 190.0,
+   "change": 0.08911067448959474
+  },
+  "CRDA.L": {
+   "nom": "Croda International Plc",
+   "devise": "GBp",
+   "quantite": 12,
+   "prix": 3832.0,
+   "change": 0.011956002306936424
+  },
+  "BILL": {
+   "nom": "BILL Holdings, Inc.",
+   "devise": "USD",
+   "quantite": 10,
+   "prix": 61.73,
+   "change": 0.9114000406341094
+  },
+  "CTKB": {
+   "nom": "Cytek Biosciences, Inc.",
+   "devise": "USD",
+   "quantite": 100,
+   "prix": 6.41,
+   "change": 0.9114000406341094
+  },
+  "CBLL": {
+   "nom": "CeriBell, Inc.",
+   "devise": "USD",
+   "quantite": 22,
+   "prix": 30.0,
+   "change": 0.9114000406341094
+  },
+  "AII": {
+   "nom": "American Integrity Insurance Group, Inc.",
+   "devise": "USD",
+   "quantite": 21,
+   "prix": 29.04,
+   "change": 0.9114000406341094
+  }
+ },
+ "operations": [
+  {
+   "date": 1795060418896,
+   "ticker": "VU.PA",
+   "nom": "Vusion S.A.",
+   "devise": "EUR",
+   "sens": "ACHAT",
+   "quantite": 4,
+   "prix": 151.8,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "SW.PA",
+   "nom": "Sodexo S.A.",
+   "devise": "EUR",
+   "sens": "ACHAT",
+   "quantite": 10,
+   "prix": 61.1,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "DEC.PA",
+   "nom": "JCDecaux SE",
+   "devise": "EUR",
+   "sens": "ACHAT",
+   "quantite": 24,
+   "prix": 27.02,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "AF.PA",
+   "nom": "Air France-KLM SA",
+   "devise": "EUR",
+   "sens": "ACHAT",
+   "quantite": 45,
+   "prix": 14.545,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "RUI.PA",
+   "nom": "Rubis",
+   "devise": "EUR",
+   "sens": "ACHAT",
+   "quantite": 18,
+   "prix": 36.76,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "WWIB.OL",
+   "nom": "Wilh. Wilhelmsen Holding ASA",
+   "devise": "NOK",
+   "sens": "ACHAT",
+   "quantite": 7,
+   "prix": 891.0,
+   "change": 0.09387247410927879,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "WWI.OL",
+   "nom": "Wilh. Wilhelmsen Holding ASA",
+   "devise": "NOK",
+   "sens": "ACHAT",
+   "quantite": 7,
+   "prix": 949.0,
+   "change": 0.09387247410927879,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "CY4.MI",
+   "nom": "Cy4gate S.p.A.",
+   "devise": "EUR",
+   "sens": "ACHAT",
+   "quantite": 59,
+   "prix": 11.26,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "ADN1.DE",
+   "nom": "adesso SE",
+   "devise": "EUR",
+   "sens": "ACHAT",
+   "quantite": 8,
+   "prix": 76.7,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "HWG.L",
+   "nom": "Harworth Group plc",
+   "devise": "GBp",
+   "sens": "ACHAT",
+   "quantite": 281,
+   "prix": 197.6,
+   "change": 0.011979921233585392,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "RSKD",
+   "nom": "Riskified Ltd.",
+   "devise": "USD",
+   "sens": "ACHAT",
+   "quantite": 74,
+   "prix": 9.79,
+   "change": 0.9123999633239188,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "AZTA",
+   "nom": "Azenta, Inc.",
+   "devise": "USD",
+   "sens": "ACHAT",
+   "quantite": 14,
+   "prix": 48.69,
+   "change": 0.9123999633239188,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "SBC",
+   "nom": "SBC Medical Group Holdings Incorporated",
+   "devise": "USD",
+   "sens": "ACHAT",
+   "quantite": 116,
+   "prix": 6.27,
+   "change": 0.9123999633239188,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "PUBM",
+   "nom": "PubMatic, Inc.",
+   "devise": "USD",
+   "sens": "ACHAT",
+   "quantite": 35,
+   "prix": 20.67,
+   "change": 0.9123999633239188,
+   "frais": 1.0
+  },
+  {
+   "date": 1795060418896,
+   "ticker": "FENC",
+   "nom": "Fennec Pharmaceuticals Inc.",
+   "devise": "USD",
+   "sens": "ACHAT",
+   "quantite": 54,
+   "prix": 13.33,
+   "change": 0.9123999633239188,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "VU.PA",
+   "nom": "Vusion S.A.",
+   "devise": "EUR",
+   "sens": "VENTE",
+   "quantite": 4,
+   "prix": 144.0,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "SW.PA",
+   "nom": "Sodexo S.A.",
+   "devise": "EUR",
+   "sens": "VENTE",
+   "quantite": 10,
+   "prix": 59.3,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "RUI.PA",
+   "nom": "Rubis",
+   "devise": "EUR",
+   "sens": "VENTE",
+   "quantite": 18,
+   "prix": 35.76,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "ADN1.DE",
+   "nom": "adesso SE",
+   "devise": "EUR",
+   "sens": "VENTE",
+   "quantite": 8,
+   "prix": 76.5,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "AZTA",
+   "nom": "Azenta, Inc.",
+   "devise": "USD",
+   "sens": "VENTE",
+   "quantite": 14,
+   "prix": 47.78,
+   "change": 0.9163999671395886,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "SBC",
+   "nom": "SBC Medical Group Holdings Incorporated",
+   "devise": "USD",
+   "sens": "VENTE",
+   "quantite": 116,
+   "prix": 6.02,
+   "change": 0.9163999671395886,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "PUBM",
+   "nom": "PubMatic, Inc.",
+   "devise": "USD",
+   "sens": "VENTE",
+   "quantite": 35,
+   "prix": 20.135,
+   "change": 0.9163999671395886,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "FENC",
+   "nom": "Fennec Pharmaceuticals Inc.",
+   "devise": "USD",
+   "sens": "VENTE",
+   "quantite": 54,
+   "prix": 13.17,
+   "change": 0.9163999671395886,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "ITP.PA",
+   "nom": "Interparfums SA",
+   "devise": "EUR",
+   "sens": "ACHAT",
+   "quantite": 16,
+   "prix": 36.62,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "ALVDM.PA",
+   "nom": "Voyageurs du Monde SA",
+   "devise": "EUR",
+   "sens": "ACHAT",
+   "quantite": 3,
+   "prix": 180.0,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "VETO.PA",
+   "nom": "Vetoquinol SA",
+   "devise": "EUR",
+   "sens": "ACHAT",
+   "quantite": 6,
+   "prix": 85.7,
+   "change": 1.0,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "YUBICO.ST",
+   "nom": "Yubico AB (publ)",
+   "devise": "SEK",
+   "sens": "ACHAT",
+   "quantite": 37,
+   "prix": 179.2,
+   "change": 0.08927057392859876,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "CRDA.L",
+   "nom": "Croda International Plc",
+   "devise": "GBp",
+   "sens": "ACHAT",
+   "quantite": 12,
+   "prix": 3832.0,
+   "change": 0.011956002306936424,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "BILL",
+   "nom": "BILL Holdings, Inc.",
+   "devise": "USD",
+   "sens": "ACHAT",
+   "quantite": 10,
+   "prix": 61.61,
+   "change": 0.9163999671395886,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "CTKB",
+   "nom": "Cytek Biosciences, Inc.",
+   "devise": "USD",
+   "sens": "ACHAT",
+   "quantite": 100,
+   "prix": 6.45,
+   "change": 0.9163999671395886,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "CBLL",
+   "nom": "CeriBell, Inc.",
+   "devise": "USD",
+   "sens": "ACHAT",
+   "quantite": 22,
+   "prix": 29.29,
+   "change": 0.9163999671395886,
+   "frais": 1.0
+  },
+  {
+   "date": 1795501430454,
+   "ticker": "AII",
+   "nom": "American Integrity Insurance Group, Inc.",
+   "devise": "USD",
+   "sens": "ACHAT",
+   "quantite": 21,
+   "prix": 29.82,
+   "change": 0.9163999671395886,
+   "frais": 1.0
+  }
+ ],
+ "valeurs": [
+  [
+   "2026-11-18",
+   9985.0
+  ],
+  [
+   "2026-11-19",
+   9959.88
+  ],
+  [
+   "2026-11-20",
+   9736.63
+  ],
+  [
+   "2026-11-24",
+   10023.88
+  ],
+  [
+   "2026-11-25",
+   9883.14
+  ],
+  [
+   "2026-11-26",
+   9806.31
+  ],
+  [
+   "2026-11-27",
+   9886.98
+  ]
+ ],
+ "dernier_reequilibrage": "2026-11-24"
+}
